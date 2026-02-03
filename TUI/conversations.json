@@ -1,0 +1,30 @@
+{
+  "conversations": [
+    {
+      "id": "a6e65bed",
+      "title": "Conversation 1",
+      "messages": [
+        {
+          "role": "user",
+          "content": "This is a smoke test message.",
+          "turn_id": "smoke-f524079d"
+        },
+        {
+          "role": "assistant",
+          "content": "Simulated response from sim-alpha.\n\n- Point A\n- Point B\n",
+          "model": "sim-alpha",
+          "turn_id": "smoke-f524079d"
+        },
+        {
+          "role": "assistant",
+          "content": "Simulated response from sim-beta.\n\n- Point A\n- Point B\n",
+          "model": "sim-beta",
+          "turn_id": "smoke-f524079d"
+        }
+      ],
+      "last_updated": 1769860681.0032375,
+      "model": "llama3"
+    }
+  ],
+  "current": "a6e65bed"
+}
