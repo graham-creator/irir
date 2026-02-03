@@ -1,4 +1,0 @@
-pytest
-textual
-youtube-transcript-api
-ollama
