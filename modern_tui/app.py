@@ -84,8 +84,8 @@ Screen {
 }
 
 #conversations {
-    width: 22%;
-    min-width: 24;
+    width: 28%;
+    min-width: 16;
     background: #0a0a0a;
     border-right: solid #222;
     opacity: 1;
@@ -114,6 +114,7 @@ Screen {
 
 #tab-bar {
     background: #0b0b0b;
+    overflow-x: auto;
     border-bottom: solid #300;
     height: 3;
     opacity: 1;
@@ -139,8 +140,9 @@ Screen {
 #home-card {
     background: #0b0b0b;
     border: solid #500;
-    padding: 2 4;
-    width: 70%;
+    padding: 1 2;
+    width: 90%;
+    max-width: 80;
 }
 
 #home-title {
@@ -168,6 +170,10 @@ Screen {
 #main,
 #input-area {
     display: none;
+}
+
+#controls {
+    overflow-x: auto;
 }
 
 """
@@ -1165,19 +1171,6 @@ Screen {
             ap = Vertical(id='agents-panel')
             ap.mount(Label('Agents / Models', id='agents-title'))
             ap.mount(Button('Refresh Models', id='refresh-models'))
-        except Exception:
-            pass
-
-    async def run_smoke_test(self):
-        """Delegate smoke test to modular helper (headless-friendly)."""
-        try:
-            return await smoke.run_smoke_test(self)
-        except Exception:
-            try:
-                logging.exception("Smoke test failed")
-            except Exception:
-                pass
-            return
             ap.mount(Button('Select All Models', id='select-all-models'))
             # model list will be loaded dynamically
             self._render_models_in_agents(ap)
@@ -1192,6 +1185,17 @@ Screen {
             self._show_agents = True
         except Exception:
             pass
+
+    async def run_smoke_test(self):
+        """Delegate smoke test to modular helper (headless-friendly)."""
+        try:
+            return await smoke.run_smoke_test(self)
+        except Exception:
+            try:
+                logging.exception("Smoke test failed")
+            except Exception:
+                pass
+            return
 
     def show_commands_overlay(self):
         try:
@@ -1275,8 +1279,6 @@ Screen {
             except Exception:
                 pass
             return
-        except Exception:
-            pass
 
     def on_button_pressed(self, event):
         if event.button.id == "tab-home":
@@ -1658,6 +1660,32 @@ Screen {
                 except Exception:
                     pass
             self.query_one("#chat-history").mount(Label("System: Edit canceled.", classes="system-msg"))
+
+    def _set_compact_labels(self, compact: bool):
+        labels = {
+            'tab-home': ('Home', 'H'),
+            'tab-chat': ('Chat', 'C'),
+            'create-conv': ('New', 'N'),
+            'rename-conv': ('Rename', 'Ren'),
+            'delete-conv': ('Delete', 'Del'),
+            'export-conv': ('Export', 'Exp'),
+            'import-conv': ('Import', 'Imp'),
+            'send-btn': ('Send', 'Go'),
+            'send-selected': ('Send to Selected', 'Multi'),
+            'btn-yt': ('Pull Transcript', 'Transcript'),
+        }
+        for wid, (full, short) in labels.items():
+            try:
+                self.query_one(f'#{wid}').label = short if compact else full
+            except Exception:
+                pass
+
+    def on_resize(self, event):
+        try:
+            width = getattr(event, 'width', None) or getattr(self.size, 'width', 120)
+            self._set_compact_labels(width < 110)
+        except Exception:
+            pass
 
     def on_key(self, event):
         """Global key handler for quick actions: Tab (agents), Ctrl+P (commands), Ctrl+X then E (external editor)."""
