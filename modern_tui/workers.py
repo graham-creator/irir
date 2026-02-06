@@ -56,6 +56,14 @@ def fetch_transcript(vid_id: str):
     return full_text
 
 
+def list_models():
+    """Return the list of available Ollama models."""
+    try:
+        return ollama.list().get("models", [])
+    except Exception:
+        return []
+
+
 def spinner_worker(ai, message: str, spinner_id: str = "summarize-spinner"):
     """Spinner worker that runs in a thread - updates small label while long tasks run."""
     ai._spinner_running = True

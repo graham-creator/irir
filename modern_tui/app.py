@@ -34,8 +34,12 @@ import logging
 
 # Configure logging to file for unhandled exceptions and diagnostics
 LOG_FILE = Path(__file__).resolve().parent / 'modern_tui_error.log'
-logging.basicConfig(filename=str(LOG_FILE), level=logging.ERROR,
-                    format='%(asctime)s %(levelname)s %(name)s: %(message)s')
+LOG_LEVEL = os.environ.get("MODERN_TUI_LOG_LEVEL", "ERROR").upper()
+logging.basicConfig(
+    filename=str(LOG_FILE),
+    level=getattr(logging, LOG_LEVEL, logging.ERROR),
+    format='%(asctime)s %(levelname)s %(name)s: %(message)s',
+)
 
 
 def _log_unhandled_exception(exc_type, exc_value, exc_traceback):
@@ -44,6 +48,10 @@ def _log_unhandled_exception(exc_type, exc_value, exc_traceback):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
     logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+
+def _log_exception(context: str, exc: Exception) -> None:
+    logging.error("Error in %s: %s", context, exc, exc_info=exc)
 
 # Register global exception hook
 sys.excepthook = _log_unhandled_exception
@@ -320,8 +328,9 @@ Screen {
     def populate_models(self):
         """Background worker to fetch available models from Ollama and update the Select."""
         try:
-            models = ollama.list().get('models', [])
-        except Exception:
+            models = workers.list_models()
+        except Exception as e:
+            _log_exception("populate_models", e)
             models = []
 
         def _replace():
@@ -468,6 +477,7 @@ Screen {
                 stream=True,
             )
         except Exception as e:
+            _log_exception("ollama.chat", e)
             await chat_box.mount(Label(f"Error contacting model {model_name}: {e}", classes="error-msg"))
             return
 
@@ -768,9 +778,9 @@ Screen {
 
     def list_models(self):
         try:
-            data = ollama.list()
-            return data.get('models', [])
-        except Exception:
+            return workers.list_models()
+        except Exception as e:
+            _log_exception("list_models", e)
             return []
 
     def show_import_picker(self):
