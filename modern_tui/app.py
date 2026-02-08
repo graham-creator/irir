@@ -17,6 +17,8 @@ from urllib.parse import urlparse, parse_qs
 # Local package modules
 from .utils import extract_youtube_id, sanitize_id
 from . import workers, compare, conversations as convs, smoke
+from .sidebar import Sidebar
+from .welcome_screen import WelcomeScreen
 
 import time
 from pathlib import Path
@@ -184,6 +186,11 @@ Screen {
     overflow-x: auto;
 }
 
+#sidebar {
+    width: 40;
+    min-width: 24;
+}
+
 """
 
     def compose(self) -> ComposeResult:
@@ -237,6 +244,7 @@ Screen {
                     yield Button("Import", id="import-conv")
 
             yield ScrollableContainer(id="chat-history")
+            yield Sidebar(id="sidebar")
 
         # Input area
         with Vertical(id="input-area"):
@@ -296,6 +304,7 @@ Screen {
             except Exception:
                 pass
         self._set_active_tab("tab-chat")
+        self._update_welcome_screen()
         try:
             self.query_one("#user-input").focus()
         except Exception:
@@ -668,6 +677,7 @@ Screen {
         # Update splash visibility depending on messages
         try:
             self.update_splash_visibility()
+            self._update_welcome_screen()
         except Exception:
             pass
 
@@ -1159,6 +1169,32 @@ Screen {
                 self.show_chat()
             else:
                 self.show_home()
+        except Exception:
+            pass
+
+    def _update_welcome_screen(self):
+        try:
+            if getattr(self, "_tab_override", False):
+                return
+            conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
+            has_msgs = bool(conv and conv.get('messages'))
+            chat_box = self.query_one("#chat-history")
+            try:
+                welcome = self.query_one("#welcome-screen")
+            except Exception:
+                welcome = None
+            if has_msgs:
+                if welcome is not None:
+                    try:
+                        welcome.remove()
+                    except Exception:
+                        pass
+                return
+            if welcome is None:
+                try:
+                    chat_box.mount(WelcomeScreen(id="welcome-screen"))
+                except Exception:
+                    pass
         except Exception:
             pass
 
