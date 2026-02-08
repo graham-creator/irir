@@ -1174,6 +1174,8 @@ Screen {
 
     def _update_welcome_screen(self):
         try:
+            if getattr(self, "_tab_override", False):
+                return
             conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
             has_msgs = bool(conv and conv.get('messages'))
             chat_box = self.query_one("#chat-history")
