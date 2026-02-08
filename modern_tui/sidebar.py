@@ -111,7 +111,7 @@ class SidebarHeader(Static):
         """Set header text."""
         text = Text("IRIR", style="bold cyan", justify="center")
         text.append("\n", style="")
-        text.append("AI Assistant", style="dim white", justify="center")
+        text.append("AI Assistant", style="dim white")
         self.update(text)
 
 
