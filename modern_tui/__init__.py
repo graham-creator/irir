@@ -15,7 +15,6 @@ from . import (
     enhanced_chat_view,
     chat_tab_complete,
     welcome_screen_custom,
-    command_palette,
 )
 from .app import AIClient
 from .progress import AnimatedProgressBar, PureProgressBar, ProgressStyle
@@ -34,7 +33,6 @@ __all__ = [
     "enhanced_chat_view",
     "chat_tab_complete",
     "welcome_screen_custom",
-    "command_palette",
     "AIClient",
     "AnimatedProgressBar",
     "PureProgressBar",

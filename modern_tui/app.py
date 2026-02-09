@@ -18,7 +18,6 @@ from urllib.parse import urlparse, parse_qs
 from .utils import extract_youtube_id, sanitize_id
 from . import workers, compare, conversations as convs, smoke
 from .sidebar import Sidebar
-from .command_palette import CommandPalette, DEFAULT_COMMANDS
 from .welcome_screen import WelcomeScreen
 
 import time
@@ -90,15 +89,15 @@ class AIClient(App):
 #home { height: 1fr; }
 
 Screen {
-    background: #0a0a0a;
-    color: #ffffff;
+    background: #0b0b0b;
+    color: #e6e6e6;
 }
 
 #conversations {
     width: 26%;
     min-width: 20;
-    background: #1a1a1a;
-    border-right: solid #333333;
+    background: #111;
+    border-right: solid #1e1e1e;
     opacity: 1;
 }
 
@@ -115,72 +114,80 @@ Screen {
 
 #input-area {
     height: 4;
-    background: #1a1a1a;
-    border-top: solid #333333;
+    background: #151515;
+    border-top: solid #1e1e1e;
 }
 
-.user-msg { color: #ffffff; }
-.ai-msg { color: #ffffff; }
+.user-msg { color: #e6e6e6; }
+.ai-msg { color: #e6e6e6; }
 
-.system-msg { color: #00ffff; }
-.error-msg { color: #ff5c5c; }
+.system-msg { color: #7aa2f7; }
+.error-msg { color: #f7768e; }
 
 #tab-bar {
-    background: #0a0a0a;
+    background: #0f0f0f;
     overflow-x: auto;
-    border-bottom: solid #333333;
+    border-bottom: solid #1e1e1e;
+    height: 3;
+}
+
+.user-msg { color: #fff; }
+.ai-msg { color: #fff; }
+
+.system-msg { color: #f33; }
+.error-msg { color: #f66; }
+
+#tab-bar {
+    background: #0b0b0b;
+    overflow-x: auto;
+    border-bottom: solid #300;
     height: 3;
     opacity: 1;
 }
 
 .tab-btn {
-    background: #1a1a1a;
-    color: #ffffff;
-    border: solid #333333;
+    background: #141414;
+    color: #e6e6e6;
+    border: solid #1e1e1e;
     margin: 0 1;
 }
 
 .tab-btn.active {
-    background: #111111;
-    color: #00ffff;
-    border: solid #00ffff;
+    background: #1e1e1e;
+    color: #fff;
 }
 
 #home {
     align: center middle;
-    background: #0a0a0a;
+    background: #0b0b0b;
 }
 
 #home-card {
-    background: #1a1a1a;
-    border: solid #333333;
+    background: #111;
+    border: solid #1e1e1e;
     padding: 2 4;
     width: 70%;
     max-width: 80;
 }
 
 #home-title {
-    color: #ffffff;
+    color: #e6e6e6;
     text-style: bold;
 }
 
 #home-subtitle {
-    color: #999999;
+    color: #8c8c8c;
     padding-top: 1;
 }
 
 #home-copy {
-    color: #cccccc;
+    color: #b5b5b5;
     padding-top: 1;
 }
 
 #home-hints {
-    color: #888888;
+    color: #8a8a8a;
     padding-top: 1;
-}
-
-.hidden {
-    display: none;
 }
 
 /* Start hidden */
@@ -195,10 +202,10 @@ Screen {
 }
 
 #sidebar {
-    width: 25%;
-    min-width: 26;
-    background: #1a1a1a;
-    border-left: solid #00ffff;
+    width: 30%;
+    min-width: 28;
+    background: #111;
+    border-left: solid #1e1e1e;
 }
 
 """
@@ -1186,6 +1193,8 @@ Screen {
 
     def _update_welcome_screen(self):
         try:
+            if getattr(self, "_tab_override", False):
+                return
             conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
             has_msgs = bool(conv and conv.get('messages'))
             chat_box = self.query_one("#chat-history")
@@ -1244,6 +1253,16 @@ Screen {
 
     async def run_smoke_test(self):
         """Delegate smoke test to modular helper (headless-friendly)."""
+        try:
+            return await smoke.run_smoke_test(self)
+        except Exception:
+            try:
+                logging.exception("Smoke test failed")
+            except Exception:
+                pass
+            return
+
+    def show_commands_overlay(self):
         try:
             return await smoke.run_smoke_test(self)
         except Exception:
