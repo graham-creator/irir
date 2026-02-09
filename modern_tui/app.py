@@ -129,6 +129,19 @@ Screen {
     overflow-x: auto;
     border-bottom: solid #1e1e1e;
     height: 3;
+}
+
+.user-msg { color: #fff; }
+.ai-msg { color: #fff; }
+
+.system-msg { color: #f33; }
+.error-msg { color: #f66; }
+
+#tab-bar {
+    background: #0b0b0b;
+    overflow-x: auto;
+    border-bottom: solid #300;
+    height: 3;
     opacity: 1;
 }
 
@@ -1178,6 +1191,8 @@ Screen {
 
     def _update_welcome_screen(self):
         try:
+            if getattr(self, "_tab_override", False):
+                return
             conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
             has_msgs = bool(conv and conv.get('messages'))
             chat_box = self.query_one("#chat-history")
