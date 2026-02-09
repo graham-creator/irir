@@ -17,10 +17,8 @@ from urllib.parse import urlparse, parse_qs
 # Local package modules
 from .utils import extract_youtube_id, sanitize_id
 from . import workers, compare, conversations as convs, smoke
-from .sidebar import Sidebar, DetailedSidebar
-from .command_palette import Command, CommandPalette, DEFAULT_COMMANDS
+from .sidebar import Sidebar
 from .welcome_screen import WelcomeScreen
-from .welcome_screen_custom import WelcomeScreen as CustomWelcomeScreen
 
 import time
 from pathlib import Path
@@ -91,15 +89,15 @@ class AIClient(App):
 #home { height: 1fr; }
 
 Screen {
-    background: #0a0a0a;
-    color: #ffffff;
+    background: #0b0b0b;
+    color: #e6e6e6;
 }
 
 #conversations {
     width: 26%;
     min-width: 20;
-    background: #1a1a1a;
-    border-right: solid #333333;
+    background: #111;
+    border-right: solid #1e1e1e;
     opacity: 1;
 }
 
@@ -116,72 +114,80 @@ Screen {
 
 #input-area {
     height: 4;
-    background: #1a1a1a;
-    border-top: solid #333333;
+    background: #151515;
+    border-top: solid #1e1e1e;
 }
 
-.user-msg { color: #ffffff; }
-.ai-msg { color: #ffffff; }
+.user-msg { color: #e6e6e6; }
+.ai-msg { color: #e6e6e6; }
 
-.system-msg { color: #00ffff; }
-.error-msg { color: #ff5c5c; }
+.system-msg { color: #7aa2f7; }
+.error-msg { color: #f7768e; }
 
 #tab-bar {
-    background: #0a0a0a;
+    background: #0f0f0f;
     overflow-x: auto;
-    border-bottom: solid #333333;
+    border-bottom: solid #1e1e1e;
+    height: 3;
+}
+
+.user-msg { color: #fff; }
+.ai-msg { color: #fff; }
+
+.system-msg { color: #f33; }
+.error-msg { color: #f66; }
+
+#tab-bar {
+    background: #0b0b0b;
+    overflow-x: auto;
+    border-bottom: solid #300;
     height: 3;
     opacity: 1;
 }
 
 .tab-btn {
-    background: #1a1a1a;
-    color: #ffffff;
-    border: solid #333333;
+    background: #141414;
+    color: #e6e6e6;
+    border: solid #1e1e1e;
     margin: 0 1;
 }
 
 .tab-btn.active {
-    background: #111111;
-    color: #00ffff;
-    border: solid #00ffff;
+    background: #1e1e1e;
+    color: #fff;
 }
 
 #home {
     align: center middle;
-    background: #0a0a0a;
+    background: #0b0b0b;
 }
 
 #home-card {
-    background: #1a1a1a;
-    border: solid #333333;
+    background: #111;
+    border: solid #1e1e1e;
     padding: 2 4;
     width: 70%;
     max-width: 80;
 }
 
 #home-title {
-    color: #ffffff;
+    color: #e6e6e6;
     text-style: bold;
 }
 
 #home-subtitle {
-    color: #999999;
+    color: #8c8c8c;
     padding-top: 1;
 }
 
 #home-copy {
-    color: #cccccc;
+    color: #b5b5b5;
     padding-top: 1;
 }
 
 #home-hints {
-    color: #888888;
+    color: #8a8a8a;
     padding-top: 1;
-}
-
-.hidden {
-    display: none;
 }
 
 /* Start hidden */
@@ -196,10 +202,10 @@ Screen {
 }
 
 #sidebar {
-    width: 25%;
-    min-width: 26;
-    background: #1a1a1a;
-    border-left: solid #00ffff;
+    width: 30%;
+    min-width: 28;
+    background: #111;
+    border-left: solid #1e1e1e;
 }
 
 """
@@ -384,8 +390,6 @@ Screen {
         self._show_agents = False
         self._awaiting_editor_key = False
         self._show_sidebar = False
-        self._sidebar_variant = "standard"
-        self._use_custom_welcome = False
         # multi-model send state
         self._selected_models = set()
         self._send_multi_mode = False
@@ -1187,8 +1191,10 @@ Screen {
         except Exception:
             pass
 
-    def _update_welcome_screen(self, force_remount: bool = False):
+    def _update_welcome_screen(self):
         try:
+            if getattr(self, "_tab_override", False):
+                return
             conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
             has_msgs = bool(conv and conv.get('messages'))
             chat_box = self.query_one("#chat-history")
@@ -1196,7 +1202,6 @@ Screen {
                 welcome = self.query_one("#welcome-screen")
             except Exception:
                 welcome = None
-            desired_cls = CustomWelcomeScreen if self._use_custom_welcome else WelcomeScreen
             if has_msgs:
                 if welcome is not None:
                     try:
@@ -1204,21 +1209,9 @@ Screen {
                     except Exception:
                         pass
                 return
-            if welcome is not None and force_remount:
-                try:
-                    welcome.remove()
-                except Exception:
-                    pass
-                welcome = None
-            if welcome is not None and not isinstance(welcome, desired_cls):
-                try:
-                    welcome.remove()
-                except Exception:
-                    pass
-                welcome = None
             if welcome is None:
                 try:
-                    chat_box.mount(desired_cls(id="welcome-screen"))
+                    chat_box.mount(WelcomeScreen(id="welcome-screen"))
                 except Exception:
                     pass
         except Exception:
@@ -1269,6 +1262,16 @@ Screen {
                 pass
             return
 
+    def show_commands_overlay(self):
+        try:
+            return await smoke.run_smoke_test(self)
+        except Exception:
+            try:
+                logging.exception("Smoke test failed")
+            except Exception:
+                pass
+            return
+
     def _set_sidebar_visibility(self, show: bool):
         try:
             sidebar = self.query_one('#sidebar')
@@ -1283,61 +1286,13 @@ Screen {
         self._show_sidebar = not getattr(self, "_show_sidebar", False)
         self._set_sidebar_visibility(self._show_sidebar)
 
-    def toggle_sidebar_variant(self):
-        self._sidebar_variant = "detailed" if self._sidebar_variant == "standard" else "standard"
-        self._mount_sidebar(self._sidebar_variant)
-
-    def toggle_welcome_style(self):
-        self._use_custom_welcome = not self._use_custom_welcome
-        self._update_welcome_screen(force_remount=True)
-
-    def _mount_sidebar(self, variant: str):
-        try:
-            main = self.query_one("#main")
-        except Exception:
-            return
-        try:
-            existing = self.query_one("#sidebar")
-            existing.remove()
-        except Exception:
-            pass
-        sidebar = DetailedSidebar(id="sidebar") if variant == "detailed" else Sidebar(id="sidebar")
-        main.mount(sidebar)
-        self._set_sidebar_visibility(self._show_sidebar)
-
-    def interrupt_current_task(self):
-        self._spinner_running = False
-        try:
-            self.query_one('#chat-history').mount(Label('System: Interrupted.', classes='system-msg'))
-        except Exception:
-            pass
-
     async def action_command_palette(self) -> None:
         result = await self.push_screen(CommandPalette(commands=self._get_commands()))
         if result:
             await self.execute_command(result)
 
     def _get_commands(self):
-        commands = list(DEFAULT_COMMANDS)
-        commands.extend(
-            [
-                Command(
-                    id="view.toggle_sidebar_variant",
-                    name="Toggle Detailed Sidebar",
-                    description="Switch between standard and detailed sidebar",
-                    category="View",
-                    keywords=["sidebar", "detailed", "layout"],
-                ),
-                Command(
-                    id="view.toggle_welcome_style",
-                    name="Toggle Welcome Style",
-                    description="Switch between simple and themed welcome screen",
-                    category="View",
-                    keywords=["welcome", "theme", "style"],
-                ),
-            ]
-        )
-        return commands
+        return DEFAULT_COMMANDS
 
     async def execute_command(self, command_id: str) -> None:
         try:
@@ -1359,17 +1314,11 @@ Screen {
                 self.show_chat(user_action=True)
             elif command_id == "view.toggle_sidebar":
                 self.toggle_sidebar()
-            elif command_id == "view.toggle_sidebar_variant":
-                self.toggle_sidebar_variant()
-            elif command_id == "view.toggle_welcome_style":
-                self.toggle_welcome_style()
             elif command_id == "view.focus_input":
                 try:
                     self.query_one("#user-input").focus()
                 except Exception:
                     pass
-            elif command_id == "quick.interrupt":
-                self.interrupt_current_task()
             elif command_id == "quick.quit":
                 self.action_quit()
             else:
