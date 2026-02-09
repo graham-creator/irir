@@ -1,3 +1,6 @@
+from textual.containers import Horizontal, Vertical
+from textual.widgets import Button, Label, Markdown
+
 import difflib
 
 
@@ -26,7 +29,7 @@ def handle_compare(ai, turn_id: str, m1: str = None, m2: str = None):
         models = group.get('models', [])
         if not models:
             try:
-                ai.query_one('#chat-history').mount(ai.Label('No models found for this turn.', classes='error-msg'))
+                ai.query_one('#chat-history').mount(Label('No models found for this turn.', classes='error-msg'))
             except Exception:
                 pass
             return
@@ -36,7 +39,7 @@ def handle_compare(ai, turn_id: str, m1: str = None, m2: str = None):
             b = next((x for x in models if ai._sanitize_id(x) == m2), None)
             if not a or not b:
                 try:
-                    ai.query_one('#chat-history').mount(ai.Label('Error: models not found for comparison.', classes='error-msg'))
+                    ai.query_one('#chat-history').mount(Label('Error: models not found for comparison.', classes='error-msg'))
                 except Exception:
                     pass
                 return
@@ -45,7 +48,7 @@ def handle_compare(ai, turn_id: str, m1: str = None, m2: str = None):
             diff = list(difflib.unified_diff(ta, tb, fromfile=a, tofile=b, lineterm=''))
             text = '```\n' + '\n'.join(diff) + '\n```'
             try:
-                ai.query_one('#chat-history').mount(ai.Markdown(f"**Diff {a} vs {b}**\n\n{text}"))
+                ai.query_one('#chat-history').mount(Markdown(f"**Diff {a} vs {b}**\n\n{text}"))
             except Exception:
                 pass
             return
@@ -57,7 +60,7 @@ def handle_compare(ai, turn_id: str, m1: str = None, m2: str = None):
             diff = list(difflib.unified_diff(ta, tb, fromfile=a, tofile=b, lineterm=''))
             text = '```\n' + '\n'.join(diff) + '\n```'
             try:
-                ai.query_one('#chat-history').mount(ai.Markdown(f"**Diff {a} vs {b}**\n\n{text}"))
+                ai.query_one('#chat-history').mount(Markdown(f"**Diff {a} vs {b}**\n\n{text}"))
             except Exception:
                 pass
             return
@@ -74,13 +77,13 @@ def handle_compare(ai, turn_id: str, m1: str = None, m2: str = None):
                 pct = int(100.0 * overlap / total)
                 rows.append((x, y, overlap, total, pct))
         try:
-            box = ai.Vertical()
-            box.mount(ai.Label('Comparison pairs:'))
+            box = Vertical()
+            box.mount(Label('Comparison pairs:'))
             for r in rows:
                 a, b, overlap, total, pct = r
-                h = ai.Horizontal()
-                h.mount(ai.Label(f"{a} vs {b} — overlap {overlap}/{total} ({pct}%)"))
-                h.mount(ai.Button('Compare', id=f'comparepair-{turn_id}-{ai._sanitize_id(a)}-{ai._sanitize_id(b)}'))
+                h = Horizontal()
+                h.mount(Label(f"{a} vs {b} — overlap {overlap}/{total} ({pct}%)"))
+                h.mount(Button('Compare', id=f'comparepair-{turn_id}-{ai._sanitize_id(a)}-{ai._sanitize_id(b)}'))
                 box.mount(h)
             ai.query_one('#chat-history').mount(box)
         except Exception:

@@ -1,5 +1,7 @@
 import time
+import ollama
 from youtube_transcript_api import YouTubeTranscriptApi
+from textual.widgets import Label
 
 
 def summarize_text(ai, text: str, model_name: str) -> str:
@@ -12,7 +14,7 @@ def summarize_text(ai, text: str, model_name: str) -> str:
     summaries = []
     for chunk in chunks:
         try:
-            resp = ai.ollama.chat(
+            resp = ollama.chat(
                 model=model_name,
                 messages=[{'role': 'user', 'content': f"Summarize the following text in concise bullet points:\n\n{chunk}"}],
                 stream=False,
@@ -33,7 +35,7 @@ def summarize_text(ai, text: str, model_name: str) -> str:
     combined = "\n\n".join(summaries)
     if len(summaries) > 1:
         try:
-            resp2 = ai.ollama.chat(
+            resp2 = ollama.chat(
                 model=model_name,
                 messages=[{'role': 'user', 'content': f"Summarize the following text in concise bullet points:\n\n{combined}"}],
                 stream=False,
@@ -54,6 +56,14 @@ def fetch_transcript(vid_id: str):
     return full_text
 
 
+def list_models():
+    """Return the list of available Ollama models."""
+    try:
+        return ollama.list().get("models", [])
+    except Exception:
+        return []
+
+
 def spinner_worker(ai, message: str, spinner_id: str = "summarize-spinner"):
     """Spinner worker that runs in a thread - updates small label while long tasks run."""
     ai._spinner_running = True
@@ -67,7 +77,7 @@ def spinner_worker(ai, message: str, spinner_id: str = "summarize-spinner"):
                 existing.remove()
             except Exception:
                 pass
-            chat_box.mount(ai.Label(f"{message}", id=spinner_id, classes='system-msg'))
+            chat_box.mount(Label(f"{message}", id=spinner_id, classes='system-msg'))
         except Exception:
             pass
 
