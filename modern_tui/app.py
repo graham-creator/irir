@@ -389,6 +389,7 @@ Screen {
         self._current_conv_id = None
         self._show_agents = False
         self._awaiting_editor_key = False
+        self._show_sidebar = False
         # multi-model send state
         self._selected_models = set()
         self._send_multi_mode = False
@@ -401,6 +402,7 @@ Screen {
         self._tab_override = False
         self._chat_reveal_done = False
         self.update_splash_visibility()
+        self._set_sidebar_visibility(self._show_sidebar)
 
         # Support smoke test mode (non-network): run a simulated multi-model send then exit
         try:
@@ -1262,36 +1264,73 @@ Screen {
 
     def show_commands_overlay(self):
         try:
-            # if present remove and re-add to refresh
+            return await smoke.run_smoke_test(self)
+        except Exception:
             try:
-                self.query_one('#commands-overlay').remove()
+                logging.exception("Smoke test failed")
             except Exception:
                 pass
-            co = Vertical(id='commands-overlay')
-            co.mount(Label('Commands:'))
-            co.mount(Label('Ctrl+X E  -> Open external editor'))
-            co.mount(Label('Tab       -> Toggle agents'))
-            co.mount(Label('Ctrl+P    -> This commands list'))
-            try:
-                self.query_one('#main').mount(co)
-            except Exception:
+            return
+
+    def _set_sidebar_visibility(self, show: bool):
+        try:
+            sidebar = self.query_one('#sidebar')
+        except Exception:
+            return
+        if show:
+            sidebar.remove_class("hidden")
+        else:
+            sidebar.add_class("hidden")
+
+    def toggle_sidebar(self):
+        self._show_sidebar = not getattr(self, "_show_sidebar", False)
+        self._set_sidebar_visibility(self._show_sidebar)
+
+    async def action_command_palette(self) -> None:
+        result = await self.push_screen(CommandPalette(commands=self._get_commands()))
+        if result:
+            await self.execute_command(result)
+
+    def _get_commands(self):
+        return DEFAULT_COMMANDS
+
+    async def execute_command(self, command_id: str) -> None:
+        try:
+            if command_id == "file.new":
+                self.create_conversation()
+            elif command_id == "file.save":
+                self.save_conversations()
+            elif command_id == "file.delete":
+                if self._current_conv_id:
+                    self.delete_conversation(self._current_conv_id)
+            elif command_id == "file.rename":
+                self.start_rename()
+            elif command_id == "file.export":
+                if self._current_conv_id:
+                    self.export_conversation(self._current_conv_id)
+            elif command_id == "view.home":
+                self.show_home(user_action=True)
+            elif command_id == "view.chat":
+                self.show_chat(user_action=True)
+            elif command_id == "view.toggle_sidebar":
+                self.toggle_sidebar()
+            elif command_id == "view.focus_input":
                 try:
-                    self.query_one('#chat-history').mount(co)
+                    self.query_one("#user-input").focus()
                 except Exception:
                     pass
-            # auto-dismiss after 3s
-            def _dismiss():
-                time.sleep(3)
+            elif command_id == "quick.quit":
+                self.action_quit()
+            else:
                 try:
-                    self.call_from_thread(lambda: self.query_one('#commands-overlay').remove())
+                    self.notify(f"Command not implemented: {command_id}", severity="warning")
                 except Exception:
-                    try:
-                        self.query_one('#commands-overlay').remove()
-                    except Exception:
-                        pass
-            threading.Thread(target=_dismiss, daemon=True).start()
+                    pass
         except Exception:
-            pass
+            try:
+                self.notify("Command failed to execute.", severity="error")
+            except Exception:
+                pass
 
     @work(thread=True)
     def open_external_editor(self):
@@ -1751,13 +1790,16 @@ Screen {
             pass
 
     def on_key(self, event):
-        """Global key handler for quick actions: Tab (agents), Ctrl+P (commands), Ctrl+X then E (external editor)."""
+        """Global key handler for quick actions: Tab (agents), Ctrl+P (command palette), Ctrl+X then E (external editor)."""
         k = event.key
         if k == 'tab':
             self.toggle_agents()
             return
         if k == 'ctrl+p':
-            self.show_commands_overlay()
+            try:
+                asyncio.create_task(self.action_command_palette())
+            except Exception:
+                pass
             return
         if k == 'ctrl+x':
             self._awaiting_editor_key = True
