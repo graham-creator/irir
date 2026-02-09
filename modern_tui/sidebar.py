@@ -31,10 +31,10 @@ class Sidebar(Container):
 
     DEFAULT_CSS = """
     Sidebar {
-        width: 30%;
+        width: 40;
         height: 100%;
-        background: #111;
-        border-left: solid #1e1e1e;
+        background: $surface;
+        border-left: solid $primary;
         padding: 1 2;
     }
 
@@ -53,7 +53,7 @@ class Sidebar(Container):
     .section-title {
         width: 100%;
         height: 1;
-        color: #e6e6e6;
+        color: $text;
         text-style: bold;
         margin: 0 0 1 0;
     }
@@ -61,24 +61,24 @@ class Sidebar(Container):
     .section-content {
         width: 100%;
         height: auto;
-        color: #9a9a9a;
+        color: $text-muted;
     }
 
     .metric-label {
-        color: #9a9a9a;
+        color: $text-muted;
     }
 
     .metric-value {
-        color: #7aa2f7;
+        color: $primary;
         text-style: bold;
     }
 
     #context-section {
-        border-bottom: solid #1e1e1e;
+        border-bottom: solid $primary-darken-2;
     }
 
     #lsp-section {
-        border-bottom: solid #1e1e1e;
+        border-bottom: solid $primary-darken-2;
     }
 
     #shortcuts-section {
@@ -109,9 +109,9 @@ class SidebarHeader(Static):
 
     def on_mount(self) -> None:
         """Set header text."""
-        text = Text("OpenCode layout and theme", style="bold white", justify="center")
+        text = Text("IRIR", style="bold cyan", justify="center")
         text.append("\n", style="")
-        text.append("explanation", style="dim white")
+        text.append("AI Assistant", style="dim white")
         self.update(text)
 
 
@@ -164,15 +164,15 @@ class ContextMetrics(Static):
         text = Text()
 
         # Tokens
-        text.append(f"{self.tokens_used:,}", style="bold white")
+        text.append(f"{self.tokens_used:,}", style="bold cyan")
         text.append(" tokens\n", style="dim white")
 
         # Percentage
-        text.append(f"{percentage:.0f}%", style="bold white")
+        text.append(f"{percentage:.0f}%", style="bold yellow")
         text.append(" used\n", style="dim white")
 
         # Cost
-        text.append(f"${self.cost_spent:.2f}", style="bold white")
+        text.append(f"${self.cost_spent:.2f}", style="bold green")
         text.append(" spent", style="dim white")
 
         self.update(text)

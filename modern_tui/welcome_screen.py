@@ -25,7 +25,7 @@ class WelcomeScreen(Container):
     WelcomeScreen {
         width: 100%;
         height: 100%;
-        background: #0b0b0b;
+        background: $background;
         align: center middle;
     }
 
@@ -43,17 +43,17 @@ class WelcomeScreen(Container):
     }
 
     #input-container {
-        width: 70%;
+        width: 80;
         height: auto;
-        background: #151515;
-        border: tall #1e1e1e;
+        background: $surface;
+        border: tall $primary;
         padding: 1 2;
         margin: 2 0;
     }
 
     #welcome-input {
         width: 100%;
-        background: #151515;
+        background: $surface;
         border: none;
     }
 
@@ -62,7 +62,7 @@ class WelcomeScreen(Container):
         height: auto;
         content-align: center middle;
         margin: 1 0;
-        color: #7aa2f7;
+        color: $primary;
     }
 
     #tip-section {
@@ -70,7 +70,7 @@ class WelcomeScreen(Container):
         height: auto;
         content-align: center middle;
         margin: 2 0;
-        color: #f2a65a;
+        color: $warning;
     }
     """
 
@@ -93,8 +93,16 @@ class Logo(Static):
 
     def _create_logo(self) -> Text:
         """Create the IRIR logo with styling."""
-        logo = "opencode"
-        text = Text(logo, justify="center", style="bold white")
+        logo = """
+██╗██████╗ ██╗██████╗ 
+██║██╔══██╗██║██╔══██╗
+██║██████╔╝██║██████╔╝
+██║██╔══██╗██║██╔══██╗
+██║██║  ██║██║██║  ██║
+╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝
+"""
+        text = Text(logo, justify="center")
+        text.stylize("bold cyan")
         return text
 
 
@@ -122,7 +130,7 @@ class ModelInfo(Static):
 
     def on_mount(self) -> None:
         """Set model info when mounted."""
-        model_text = Text("Build", style="bold #7aa2f7")
+        model_text = Text("Build", style="bold blue")
         model_text.append("  Llama 3 2 3b ", style="white")
         model_text.append("Ollama (local)", style="dim white")
 
@@ -134,10 +142,10 @@ class TipSection(Static):
 
     def on_mount(self) -> None:
         """Set tip when mounted."""
-        tip_text = Text("● ", style="bold #f2a65a")
-        tip_text.append("Tip", style="bold #f2a65a")
+        tip_text = Text("● ", style="bold yellow")
+        tip_text.append("Tip", style="bold yellow")
         tip_text.append(" Use ", style="dim white")
-        tip_text.append("opencode run", style="bold white")
+        tip_text.append("irir run", style="bold white")
         tip_text.append(" for non-interactive scripting", style="dim white")
 
         self.update(Align.center(tip_text))
