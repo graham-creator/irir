@@ -89,15 +89,15 @@ class AIClient(App):
 #home { height: 1fr; }
 
 Screen {
-    background: #000;
-    color: #fff;
+    background: #0b0b0b;
+    color: #e6e6e6;
 }
 
 #conversations {
-    width: 28%;
-    min-width: 16;
-    background: #0a0a0a;
-    border-right: solid #222;
+    width: 26%;
+    min-width: 20;
+    background: #111;
+    border-right: solid #1e1e1e;
     opacity: 1;
 }
 
@@ -109,10 +109,25 @@ Screen {
 #chat-history {
     height: 1fr;
     overflow-y: auto;
-    padding: 1;
+    padding: 1 2;
 }
 
 #input-area {
+    height: 4;
+    background: #151515;
+    border-top: solid #1e1e1e;
+}
+
+.user-msg { color: #e6e6e6; }
+.ai-msg { color: #e6e6e6; }
+
+.system-msg { color: #7aa2f7; }
+.error-msg { color: #f7768e; }
+
+#tab-bar {
+    background: #0f0f0f;
+    overflow-x: auto;
+    border-bottom: solid #1e1e1e;
     height: 3;
 }
 
@@ -131,47 +146,47 @@ Screen {
 }
 
 .tab-btn {
-    background: #111;
-    color: #fff;
-    border: solid #500;
+    background: #141414;
+    color: #e6e6e6;
+    border: solid #1e1e1e;
     margin: 0 1;
 }
 
 .tab-btn.active {
-    background: #300;
+    background: #1e1e1e;
     color: #fff;
 }
 
 #home {
     align: center middle;
-    background: #000;
+    background: #0b0b0b;
 }
 
 #home-card {
-    background: #0b0b0b;
-    border: solid #500;
-    padding: 1 2;
-    width: 90%;
+    background: #111;
+    border: solid #1e1e1e;
+    padding: 2 4;
+    width: 70%;
     max-width: 80;
 }
 
 #home-title {
-    color: #fff;
+    color: #e6e6e6;
     text-style: bold;
 }
 
 #home-subtitle {
-    color: #f33;
+    color: #8c8c8c;
     padding-top: 1;
 }
 
 #home-copy {
-    color: #ddd;
+    color: #b5b5b5;
     padding-top: 1;
 }
 
 #home-hints {
-    color: #aaa;
+    color: #8a8a8a;
     padding-top: 1;
 }
 
@@ -187,8 +202,10 @@ Screen {
 }
 
 #sidebar {
-    width: 40;
-    min-width: 24;
+    width: 30%;
+    min-width: 28;
+    background: #111;
+    border-left: solid #1e1e1e;
 }
 
 """
@@ -202,14 +219,14 @@ Screen {
 
         with Vertical(id="home"):
             with Vertical(id="home-card"):
-                yield Label("Home", id="home-title")
-                yield Label("Black · Red · White", id="home-subtitle")
+                yield Label("opencode", id="home-title")
+                yield Label("AI assistant", id="home-subtitle")
                 yield Label(
-                    "Open your workspace, review conversations, or jump into chat.",
+                    "Ask anything, summarize YouTube, or compare model responses.",
                     id="home-copy",
                 )
                 yield Label(
-                    "Use the tabs above to switch views.",
+                    "tab agents    ctrl+p commands    esc interrupt",
                     id="home-hints",
                 )
 

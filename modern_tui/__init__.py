@@ -13,6 +13,8 @@ from . import (
     sidebar,
     welcome_screen,
     enhanced_chat_view,
+    chat_tab_complete,
+    welcome_screen_custom,
 )
 from .app import AIClient
 from .progress import AnimatedProgressBar, PureProgressBar, ProgressStyle
@@ -29,6 +31,8 @@ __all__ = [
     "sidebar",
     "welcome_screen",
     "enhanced_chat_view",
+    "chat_tab_complete",
+    "welcome_screen_custom",
     "AIClient",
     "AnimatedProgressBar",
     "PureProgressBar",
