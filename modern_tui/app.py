@@ -17,6 +17,10 @@ from urllib.parse import urlparse, parse_qs
 # Local package modules
 from .utils import extract_youtube_id, sanitize_id
 from . import workers, compare, conversations as convs, smoke
+from .sidebar import Sidebar, DetailedSidebar
+from .command_palette import Command, CommandPalette, DEFAULT_COMMANDS
+from .welcome_screen import WelcomeScreen
+from .welcome_screen_custom import WelcomeScreen as CustomWelcomeScreen
 
 import time
 from pathlib import Path
@@ -34,8 +38,12 @@ import logging
 
 # Configure logging to file for unhandled exceptions and diagnostics
 LOG_FILE = Path(__file__).resolve().parent / 'modern_tui_error.log'
-logging.basicConfig(filename=str(LOG_FILE), level=logging.ERROR,
-                    format='%(asctime)s %(levelname)s %(name)s: %(message)s')
+LOG_LEVEL = os.environ.get("MODERN_TUI_LOG_LEVEL", "ERROR").upper()
+logging.basicConfig(
+    filename=str(LOG_FILE),
+    level=getattr(logging, LOG_LEVEL, logging.ERROR),
+    format='%(asctime)s %(levelname)s %(name)s: %(message)s',
+)
 
 
 def _log_unhandled_exception(exc_type, exc_value, exc_traceback):
@@ -44,6 +52,10 @@ def _log_unhandled_exception(exc_type, exc_value, exc_traceback):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
     logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+
+def _log_exception(context: str, exc: Exception) -> None:
+    logging.error("Error in %s: %s", context, exc, exc_info=exc)
 
 # Register global exception hook
 sys.excepthook = _log_unhandled_exception
@@ -76,12 +88,19 @@ except Exception:
 class AIClient(App):
     CSS = """
 #main { height: 1fr; }
+#home { height: 1fr; }
+
+Screen {
+    background: #0a0a0a;
+    color: #ffffff;
+}
 
 #conversations {
-    width: 22%;
-    min-width: 24;
-    background: #0a0a0a;
-    border-right: solid #222;
+    width: 26%;
+    min-width: 20;
+    background: #1a1a1a;
+    border-right: solid #333333;
+    opacity: 1;
 }
 
 #conv-list {
@@ -92,70 +111,78 @@ class AIClient(App):
 #chat-history {
     height: 1fr;
     overflow-y: auto;
-    padding: 1;
-}
-
-#input-area {
-    height: 3;
-    opacity: 1;
-    transition: opacity 300ms linear;
-}
-# #input-area.visible {
-#     opacity: 1;
-#     transition: opacity 300ms in;
-# }
-
-.user-msg { color: cyan; }
-.ai-msg { color: white; }
-
-.system-msg { color: lightgreen; }
-.error-msg { color: tomato; }
-
-/* Splash */
-#splash {
-    height: 1fr;
-    align: center middle;
-    background: #000;
-}
-
-#splash-logo {
-    color: #aaa;
-    text-style: bold;
-    text-align: center;
-    padding-bottom: 1;
-}
-
-#splash-input {
-    width: 60%;
-    border: solid #333;
     padding: 1 2;
 }
 
-#splash-meta {
-    color: #777;
-    padding-top: 1;
-}
-
-#splash-hint {
-    color: #666;
-    padding-top: 1;
-}
-
-
 #input-area {
-    opacity: 0;
+    height: 4;
+    background: #1a1a1a;
+    border-top: solid #333333;
 }
 
-#splash {
+.user-msg { color: #ffffff; }
+.ai-msg { color: #ffffff; }
+
+.system-msg { color: #00ffff; }
+.error-msg { color: #ff5c5c; }
+
+#tab-bar {
+    background: #0a0a0a;
+    overflow-x: auto;
+    border-bottom: solid #333333;
+    height: 3;
     opacity: 1;
 }
 
-# #splash.hidden {
-#     opacity: 0;
-#     transition: opacity 300ms out;
-# }
+.tab-btn {
+    background: #1a1a1a;
+    color: #ffffff;
+    border: solid #333333;
+    margin: 0 1;
+}
 
+.tab-btn.active {
+    background: #111111;
+    color: #00ffff;
+    border: solid #00ffff;
+}
 
+#home {
+    align: center middle;
+    background: #0a0a0a;
+}
+
+#home-card {
+    background: #1a1a1a;
+    border: solid #333333;
+    padding: 2 4;
+    width: 70%;
+    max-width: 80;
+}
+
+#home-title {
+    color: #ffffff;
+    text-style: bold;
+}
+
+#home-subtitle {
+    color: #999999;
+    padding-top: 1;
+}
+
+#home-copy {
+    color: #cccccc;
+    padding-top: 1;
+}
+
+#home-hints {
+    color: #888888;
+    padding-top: 1;
+}
+
+.hidden {
+    display: none;
+}
 
 /* Start hidden */
 #controls,
@@ -164,26 +191,38 @@ class AIClient(App):
     display: none;
 }
 
+#controls {
+    overflow-x: auto;
+}
+
+#sidebar {
+    width: 25%;
+    min-width: 26;
+    background: #1a1a1a;
+    border-left: solid #00ffff;
+}
+
 """
 
     def compose(self) -> ComposeResult:
         yield Header()
 
-        # SPLASH OVERLAY (visual only)
-        with Vertical(id="splash"):
-            yield Label("opencode", id="splash-logo")
-            yield Input(
-                placeholder='Ask anything… "Fix broken tests"',
-                id="splash-input"
-            )
-            yield Label(
-                "Build  ·  Llama 3 2b  ·  Ollama (local)",
-                id="splash-meta"
-            )
-            yield Label(
-                "tab agents    ctrl+p commands",
-                id="splash-hint"
-            )
+        with Horizontal(id="tab-bar"):
+            yield Button("Home", id="tab-home", classes="tab-btn active")
+            yield Button("Chat", id="tab-chat", classes="tab-btn")
+
+        with Vertical(id="home"):
+            with Vertical(id="home-card"):
+                yield Label("opencode", id="home-title")
+                yield Label("AI assistant", id="home-subtitle")
+                yield Label(
+                    "Ask anything, summarize YouTube, or compare model responses.",
+                    id="home-copy",
+                )
+                yield Label(
+                    "tab agents    ctrl+p commands    esc interrupt",
+                    id="home-hints",
+                )
 
         # === EXISTING UI (UNCHANGED) ===
 
@@ -216,6 +255,7 @@ class AIClient(App):
                     yield Button("Import", id="import-conv")
 
             yield ScrollableContainer(id="chat-history")
+            yield Sidebar(id="sidebar")
 
         # Input area
         with Vertical(id="input-area"):
@@ -229,45 +269,57 @@ class AIClient(App):
 
         yield Footer()
 
-    def on_mount(self):
-        self.mount(
-            Vertical(
-                Label("Modern TUI", id="splash-logo"),
-                Input(placeholder="Ask anything…", id="splash-input"),
-                Label("Press Enter to continue", id="splash-hint"),
-                id="splash",
-            )
-        )
-        self.query_one("#splash-input").focus()
-    
-    def on_mount(self) -> None:
-        self.query_one("#input-area").add_class("visible")
-    
-    def hide_splash(self) -> None:
-        self.query_one("#splash").add_class("hidden")
+    def _set_active_tab(self, tab_id: str):
+        for btn_id in ("tab-home", "tab-chat"):
+            try:
+                btn = self.query_one(f"#{btn_id}")
+                if btn_id == tab_id:
+                    btn.add_class("active")
+                else:
+                    btn.remove_class("active")
+            except Exception:
+                pass
 
-
-
-    async def dismiss_splash(self):
-        splash = self.query_one("#splash")
-
-        # Fade out splash
-        await splash.animate("opacity", 0.0, duration=0.3)
-
-        splash.remove()
-
-        # Reveal main UI
+    def show_home(self, user_action: bool = False):
+        if user_action:
+            self._tab_override = True
+        self._active_tab = "home"
+        try:
+            self.query_one("#home").display = True
+        except Exception:
+            pass
         for id_ in ("controls", "main", "input-area"):
-            widget = self.query_one(f"#{id_}")
-            widget.display = True
-            widget.opacity = 0
-            await widget.animate("opacity", 1.0, duration=0.3)
+            try:
+                self.query_one(f"#{id_}").display = False
+            except Exception:
+                pass
+        self._set_active_tab("tab-home")
 
-        self.query_one("#user-input").focus()
-    
-    def on_input_submitted(self, event: Input.Submitted):
-        if event.input.id == "splash-input":
-            self.run_worker(self.dismiss_splash(), exclusive=True)
+    def show_chat(self, user_action: bool = False):
+        if user_action:
+            self._tab_override = True
+        self._active_tab = "chat"
+        try:
+            self.query_one("#home").display = False
+        except Exception:
+            pass
+        for id_ in ("controls", "main", "input-area"):
+            try:
+                self.query_one(f"#{id_}").display = True
+            except Exception:
+                pass
+        if not getattr(self, "_chat_reveal_done", False):
+            self._chat_reveal_done = True
+            try:
+                asyncio.create_task(self._animate_chat_reveal())
+            except Exception:
+                pass
+        self._set_active_tab("tab-chat")
+        self._update_welcome_screen()
+        try:
+            self.query_one("#user-input").focus()
+        except Exception:
+            pass
 
 
 
@@ -278,12 +330,27 @@ class AIClient(App):
         except Exception:
             return None
 
+    async def _animate_chat_reveal(self):
+        try:
+            tab_bar = self.query_one("#tab-bar")
+            conversations = self.query_one("#conversations")
+        except Exception:
+            return
+        try:
+            tab_bar.opacity = 0
+            conversations.opacity = 0
+            await tab_bar.animate("opacity", 1.0, duration=0.25)
+            await conversations.animate("opacity", 1.0, duration=0.35)
+        except Exception:
+            pass
+
     @work(thread=True)
     def populate_models(self):
         """Background worker to fetch available models from Ollama and update the Select."""
         try:
-            models = ollama.list().get('models', [])
-        except Exception:
+            models = workers.list_models()
+        except Exception as e:
+            _log_exception("populate_models", e)
             models = []
 
         def _replace():
@@ -316,6 +383,9 @@ class AIClient(App):
         self._current_conv_id = None
         self._show_agents = False
         self._awaiting_editor_key = False
+        self._show_sidebar = False
+        self._sidebar_variant = "standard"
+        self._use_custom_welcome = False
         # multi-model send state
         self._selected_models = set()
         self._send_multi_mode = False
@@ -324,14 +394,17 @@ class AIClient(App):
         # ensure there is at least one conversation selected
         if not self._current_conv_id and self._conversations:
             self.select_conversation(self._conversations[0]['id'])
-        # Show splash if no messages
+        self._active_tab = None
+        self._tab_override = False
+        self._chat_reveal_done = False
         self.update_splash_visibility()
+        self._set_sidebar_visibility(self._show_sidebar)
 
         # Support smoke test mode (non-network): run a simulated multi-model send then exit
         try:
             if '--smoke' in sys.argv or os.environ.get('SMOKE_TEST'):
                 # schedule the smoke test to run in the event loop after mount
-                asyncio.create_task(self.run_smoke_test())
+                self.run_smoke_test()
         except Exception:
             pass
 
@@ -428,6 +501,7 @@ class AIClient(App):
                 stream=True,
             )
         except Exception as e:
+            _log_exception("ollama.chat", e)
             await chat_box.mount(Label(f"Error contacting model {model_name}: {e}", classes="error-msg"))
             return
 
@@ -618,6 +692,7 @@ class AIClient(App):
         # Update splash visibility depending on messages
         try:
             self.update_splash_visibility()
+            self._update_welcome_screen()
         except Exception:
             pass
 
@@ -728,9 +803,9 @@ class AIClient(App):
 
     def list_models(self):
         try:
-            data = ollama.list()
-            return data.get('models', [])
-        except Exception:
+            return workers.list_models()
+        except Exception as e:
+            _log_exception("list_models", e)
             return []
 
     def show_import_picker(self):
@@ -1075,29 +1150,6 @@ class AIClient(App):
             _err()
 
     # ---- Splash and UI helpers ----
-    def show_splash(self):
-        try:
-            chat_box = self.query_one('#chat-history')
-            # remove existing
-            try:
-                s = self.query_one('#splash')
-                s.remove()
-            except Exception:
-                pass
-            s = Vertical(id='splash')
-            s.mount(Label('opencode', id='splash-logo'))
-            prompt = Horizontal(id='splash-prompt')
-            prompt.mount(Label('Ask anything... "Fix broken tests"', id='splash-placeholder', classes='splash-placeholder'))
-            prompt.mount(Label('Build  Llama 3 2 3b  Ollama (local)', classes='splash-hint'))
-            s.mount(prompt)
-            hints = Horizontal()
-            hints.mount(Label('tab agents', classes='splash-hint'))
-            hints.mount(Label('ctrl+p commands', classes='splash-hint'))
-            s.mount(hints)
-            chat_box.mount(s)
-        except Exception:
-            pass
-
     def create_response_group(self, turn_id: str, user_text: str, models: list):
         """Create an aggregated UI container for multi-model responses."""
         try:
@@ -1122,21 +1174,53 @@ class AIClient(App):
         except Exception:
             pass
 
-    def hide_splash(self):
+    def update_splash_visibility(self):
         try:
-            s = self.query_one('#splash')
-            s.remove()
+            if getattr(self, "_tab_override", False):
+                return
+            conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
+            has_msgs = bool(conv and conv.get('messages'))
+            if has_msgs:
+                self.show_chat()
+            else:
+                self.show_home()
         except Exception:
             pass
 
-    def update_splash_visibility(self):
+    def _update_welcome_screen(self, force_remount: bool = False):
         try:
             conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
             has_msgs = bool(conv and conv.get('messages'))
-            if not has_msgs:
-                self.show_splash()
-            else:
-                self.hide_splash()
+            chat_box = self.query_one("#chat-history")
+            try:
+                welcome = self.query_one("#welcome-screen")
+            except Exception:
+                welcome = None
+            desired_cls = CustomWelcomeScreen if self._use_custom_welcome else WelcomeScreen
+            if has_msgs:
+                if welcome is not None:
+                    try:
+                        welcome.remove()
+                    except Exception:
+                        pass
+                return
+            if welcome is not None and force_remount:
+                try:
+                    welcome.remove()
+                except Exception:
+                    pass
+                welcome = None
+            if welcome is not None and not isinstance(welcome, desired_cls):
+                try:
+                    welcome.remove()
+                except Exception:
+                    pass
+                welcome = None
+            if welcome is None:
+                try:
+                    chat_box.mount(desired_cls(id="welcome-screen"))
+                except Exception:
+                    pass
         except Exception:
             pass
 
@@ -1159,19 +1243,6 @@ class AIClient(App):
             ap = Vertical(id='agents-panel')
             ap.mount(Label('Agents / Models', id='agents-title'))
             ap.mount(Button('Refresh Models', id='refresh-models'))
-        except Exception:
-            pass
-
-    async def run_smoke_test(self):
-        """Delegate smoke test to modular helper (headless-friendly)."""
-        try:
-            return await smoke.run_smoke_test(self)
-        except Exception:
-            try:
-                logging.exception("Smoke test failed")
-            except Exception:
-                pass
-            return
             ap.mount(Button('Select All Models', id='select-all-models'))
             # model list will be loaded dynamically
             self._render_models_in_agents(ap)
@@ -1187,38 +1258,159 @@ class AIClient(App):
         except Exception:
             pass
 
-    def show_commands_overlay(self):
+    def run_smoke_test(self):
+        """Delegate smoke test to modular helper (headless-friendly)."""
         try:
-            # if present remove and re-add to refresh
+            asyncio.create_task(smoke.run_smoke_test(self))
+        except Exception:
             try:
-                self.query_one('#commands-overlay').remove()
+                logging.exception("Smoke test failed")
             except Exception:
                 pass
-            co = Vertical(id='commands-overlay')
-            co.mount(Label('Commands:'))
-            co.mount(Label('Ctrl+X E  -> Open external editor'))
-            co.mount(Label('Tab       -> Toggle agents'))
-            co.mount(Label('Ctrl+P    -> This commands list'))
-            try:
-                self.query_one('#main').mount(co)
-            except Exception:
-                try:
-                    self.query_one('#chat-history').mount(co)
-                except Exception:
-                    pass
-            # auto-dismiss after 3s
-            def _dismiss():
-                time.sleep(3)
-                try:
-                    self.call_from_thread(lambda: self.query_one('#commands-overlay').remove())
-                except Exception:
-                    try:
-                        self.query_one('#commands-overlay').remove()
-                    except Exception:
-                        pass
-            threading.Thread(target=_dismiss, daemon=True).start()
+            return
+
+    def _set_sidebar_visibility(self, show: bool):
+        try:
+            sidebar = self.query_one('#sidebar')
+        except Exception:
+            return
+        if show:
+            sidebar.remove_class("hidden")
+        else:
+            sidebar.add_class("hidden")
+
+    def toggle_sidebar(self):
+        self._show_sidebar = not getattr(self, "_show_sidebar", False)
+        self._set_sidebar_visibility(self._show_sidebar)
+
+    def toggle_sidebar_variant(self):
+        self._sidebar_variant = "detailed" if self._sidebar_variant == "standard" else "standard"
+        self._mount_sidebar(self._sidebar_variant)
+
+    def toggle_welcome_style(self):
+        self._use_custom_welcome = not self._use_custom_welcome
+        self._update_welcome_screen(force_remount=True)
+
+    def _mount_sidebar(self, variant: str):
+        try:
+            main = self.query_one("#main")
+        except Exception:
+            return
+        try:
+            existing = self.query_one("#sidebar")
+            existing.remove()
         except Exception:
             pass
+        sidebar = DetailedSidebar(id="sidebar") if variant == "detailed" else Sidebar(id="sidebar")
+        main.mount(sidebar)
+        self._set_sidebar_visibility(self._show_sidebar)
+
+    def interrupt_current_task(self):
+        self._spinner_running = False
+        try:
+            self.query_one('#chat-history').mount(Label('System: Interrupted.', classes='system-msg'))
+        except Exception:
+            pass
+
+    async def action_command_palette(self) -> None:
+        result = await self.push_screen(CommandPalette(commands=self._get_commands()))
+        if result:
+            await self.execute_command(result)
+
+    def _get_commands(self):
+        commands = list(DEFAULT_COMMANDS)
+        commands.extend(
+            [
+                Command(
+                    id="view.toggle_sidebar_variant",
+                    name="Toggle Detailed Sidebar",
+                    description="Switch between standard and detailed sidebar",
+                    category="View",
+                    keywords=["sidebar", "detailed", "layout"],
+                ),
+                Command(
+                    id="view.toggle_welcome_style",
+                    name="Toggle Welcome Style",
+                    description="Switch between simple and themed welcome screen",
+                    category="View",
+                    keywords=["welcome", "theme", "style"],
+                ),
+            ]
+        )
+        return commands
+
+    async def execute_command(self, command_id: str) -> None:
+        try:
+            if command_id == "file.new":
+                self.create_conversation()
+            elif command_id == "file.save":
+                self.save_conversations()
+            elif command_id == "file.delete":
+                if self._current_conv_id:
+                    self.delete_conversation(self._current_conv_id)
+            elif command_id == "file.rename":
+                self.start_rename()
+            elif command_id == "file.export":
+                if self._current_conv_id:
+                    self.export_conversation(self._current_conv_id)
+            elif command_id == "file.import":
+                self.show_import_picker()
+            elif command_id == "view.home":
+                self.show_home(user_action=True)
+            elif command_id == "view.chat":
+                self.show_chat(user_action=True)
+            elif command_id == "view.toggle_sidebar":
+                self.toggle_sidebar()
+            elif command_id == "view.toggle_sidebar_variant":
+                self.toggle_sidebar_variant()
+            elif command_id == "view.toggle_welcome_style":
+                self.toggle_welcome_style()
+            elif command_id == "view.focus_input":
+                try:
+                    self.query_one("#user-input").focus()
+                except Exception:
+                    pass
+            elif command_id == "view.toggle_agents":
+                self.toggle_agents()
+            elif command_id == "model.refresh":
+                self.populate_models()
+            elif command_id == "model.use_selected":
+                try:
+                    selector = self.query_one("#model-selector")
+                    model = getattr(selector, "value", None)
+                    if model:
+                        self.set_conversation_model(model)
+                except Exception:
+                    pass
+            elif command_id == "yt.pull":
+                try:
+                    inp = self.query_one("#user-input")
+                    user_text = inp.value or ""
+                    action_selector = self.query_one("#yt-action")
+                    action = getattr(action_selector, "value", None) or "summarize_append"
+                    selector = self.query_one("#model-selector")
+                    model = getattr(selector, "value", None) or "llama3"
+                    self.fetch_and_process_transcript(user_text, action, model)
+                except Exception:
+                    pass
+            elif command_id == "edit.open_external_editor":
+                self.open_external_editor()
+            elif command_id == "tools.run_smoke_test":
+                self.run_smoke_test()
+            elif command_id == "quick.interrupt":
+                self.interrupt_current_task()
+            elif command_id == "quick.quit":
+                self.action_quit()
+            else:
+                try:
+                    self.notify(f"Command not implemented: {command_id}", severity="warning")
+                except Exception:
+                    pass
+        except Exception:
+            try:
+                self.notify("Command failed to execute.", severity="error")
+            except Exception:
+                pass
 
     @work(thread=True)
     def open_external_editor(self):
@@ -1269,11 +1461,13 @@ class AIClient(App):
             except Exception:
                 pass
             return
-        except Exception:
-            pass
 
     def on_button_pressed(self, event):
-        if event.button.id == "send-btn":
+        if event.button.id == "tab-home":
+            self.show_home(user_action=True)
+        elif event.button.id == "tab-chat":
+            self.show_chat(user_action=True)
+        elif event.button.id == "send-btn":
             inp = self.query_one("#user-input")
             user_text = inp.value
             selector = self.query_one("#model-selector")
@@ -1649,14 +1843,43 @@ class AIClient(App):
                     pass
             self.query_one("#chat-history").mount(Label("System: Edit canceled.", classes="system-msg"))
 
+    def _set_compact_labels(self, compact: bool):
+        labels = {
+            'tab-home': ('Home', 'H'),
+            'tab-chat': ('Chat', 'C'),
+            'create-conv': ('New', 'N'),
+            'rename-conv': ('Rename', 'Ren'),
+            'delete-conv': ('Delete', 'Del'),
+            'export-conv': ('Export', 'Exp'),
+            'import-conv': ('Import', 'Imp'),
+            'send-btn': ('Send', 'Go'),
+            'send-selected': ('Send to Selected', 'Multi'),
+            'btn-yt': ('Pull Transcript', 'Transcript'),
+        }
+        for wid, (full, short) in labels.items():
+            try:
+                self.query_one(f'#{wid}').label = short if compact else full
+            except Exception:
+                pass
+
+    def on_resize(self, event):
+        try:
+            width = getattr(event, 'width', None) or getattr(self.size, 'width', 120)
+            self._set_compact_labels(width < 110)
+        except Exception:
+            pass
+
     def on_key(self, event):
-        """Global key handler for quick actions: Tab (agents), Ctrl+P (commands), Ctrl+X then E (external editor)."""
+        """Global key handler for quick actions: Tab (agents), Ctrl+P (command palette), Ctrl+X then E (external editor)."""
         k = event.key
         if k == 'tab':
             self.toggle_agents()
             return
         if k == 'ctrl+p':
-            self.show_commands_overlay()
+            try:
+                asyncio.create_task(self.action_command_palette())
+            except Exception:
+                pass
             return
         if k == 'ctrl+x':
             self._awaiting_editor_key = True
