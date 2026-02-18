@@ -36,6 +36,8 @@ import sys
 import asyncio
 import logging
 
+CONTEXT_WINDOW = 10  # number of recent messages to include (user + assistant combined)
+
 # Configure logging to file for unhandled exceptions and diagnostics
 LOG_FILE = Path(__file__).resolve().parent / 'modern_tui_error.log'
 LOG_LEVEL = os.environ.get("MODERN_TUI_LOG_LEVEL", "ERROR").upper()
@@ -493,11 +495,22 @@ Screen {
             except Exception as e:
                 await chat_box.mount(Label(f"Error fetching transcript: {e}", classes="error-msg"))
 
+        # Build capped message history from current conversation
+        conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
+        history = conv.get('messages', [])[-CONTEXT_WINDOW:] if conv else []
+
+        messages = [
+            {'role': m.get('role', 'user'), 'content': m.get('content', '')}
+            for m in history
+            if m.get('role') in {'user', 'assistant', 'system'} and m.get('content')
+        ]
+        messages.append({'role': 'user', 'content': user_text})
+
         # Send to Ollama (guard API errors)
         try:
             stream = ollama.chat(
                 model=model_name,
-                messages=[{'role': 'user', 'content': user_text}],
+                messages=messages,
                 stream=True,
             )
         except Exception as e:
