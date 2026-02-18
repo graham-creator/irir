@@ -1,11 +1,18 @@
+<<<<<<< HEAD
 from typing import Optional
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Label, Markdown
 
 import difflib
 
 
+<<<<<<< HEAD
 def get_response_text(ai, turn_id: Optional[str], model_name: Optional[str]) -> str:
+=======
+def get_response_text(ai, turn_id: str, model_name: str) -> str:
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     """Retrieve response text for a model in a turn from conversation storage or UI."""
     try:
         conv = next((c for c in ai._conversations if c['id'] == ai._current_conv_id), None)
@@ -23,7 +30,11 @@ def get_response_text(ai, turn_id: Optional[str], model_name: Optional[str]) -> 
         return ''
 
 
+<<<<<<< HEAD
 def handle_compare(ai, turn_id: str, m1: Optional[str] = None, m2: Optional[str] = None):
+=======
+def handle_compare(ai, turn_id: str, m1: str = None, m2: str = None):
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     """Handle compare action: if two models specified, show diff; otherwise show metrics and pair buttons."""
     try:
         group = ai._groups.get(turn_id, {})

@@ -1,13 +1,23 @@
+<<<<<<< HEAD
 from typing import Optional
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical, ScrollableContainer
 from textual.widgets import Header, Input, Button, Label, Markdown, Select
+=======
+from textual.app import App, ComposeResult
+from textual.containers import Horizontal, Vertical, ScrollableContainer
+from textual.widgets import Header, Footer, Input, Button, Label, Markdown, Select
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 try:
     from textual.widgets import TextArea
 except Exception:
     TextArea = None
 try:
+<<<<<<< HEAD
     from textual.widgets import Spinner  # type: ignore
+=======
+    from textual.widgets import Spinner
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 except Exception:
     Spinner = None
 from textual import work
@@ -20,6 +30,7 @@ from .utils import extract_youtube_id, sanitize_id
 from . import workers, compare, conversations as convs, smoke
 from .sidebar import Sidebar
 from .welcome_screen import WelcomeScreen
+<<<<<<< HEAD
 from .command_palette import CommandPalette, DEFAULT_COMMANDS
 from .slash_commands import SLASH_COMMANDS, get_commands_for_query
 from .slash_command_menu import SlashCommandMenu
@@ -27,6 +38,8 @@ from .conversation_manager import ConversationManager
 from .message_history import MessageHistory
 from .chat_area import ChatArea, ChatHeader
 from .chat_message import ChatMessage
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 
 import time
 from pathlib import Path
@@ -92,7 +105,10 @@ except Exception:
 
 
 class AIClient(App):
+<<<<<<< HEAD
     TITLE = ""  # Remove "AIClient" title from header
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     CSS = """
 #main { height: 1fr; }
 #home { height: 1fr; }
@@ -106,6 +122,11 @@ Screen {
     width: 26%;
     min-width: 20;
     background: #111;
+<<<<<<< HEAD
+=======
+    border-right: solid #1e1e1e;
+    opacity: 1;
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 }
 
 #conv-list {
@@ -117,14 +138,22 @@ Screen {
     height: 1fr;
     overflow-y: auto;
     padding: 1 2;
+<<<<<<< HEAD
     background: #0b0b0b;
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 }
 
 #input-area {
     height: 4;
+<<<<<<< HEAD
     background: #0b0b0b;
     layout: vertical;
     position: relative;
+=======
+    background: #151515;
+    border-top: solid #1e1e1e;
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 }
 
 .user-msg { color: #e6e6e6; }
@@ -134,6 +163,7 @@ Screen {
 .error-msg { color: #f7768e; }
 
 #tab-bar {
+<<<<<<< HEAD
     background: #0b0b0b;
     overflow-x: auto;
     height: 3;
@@ -142,12 +172,43 @@ Screen {
 .tab-btn {
     background: #0b0b0b;
     color: #666;
+=======
+    background: #0f0f0f;
+    overflow-x: auto;
+    border-bottom: solid #1e1e1e;
+    height: 3;
+}
+
+.user-msg { color: #fff; }
+.ai-msg { color: #fff; }
+
+.system-msg { color: #f33; }
+.error-msg { color: #f66; }
+
+#tab-bar {
+    background: #0b0b0b;
+    overflow-x: auto;
+    border-bottom: solid #300;
+    height: 3;
+    opacity: 1;
+}
+
+.tab-btn {
+    background: #141414;
+    color: #e6e6e6;
+    border: solid #1e1e1e;
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     margin: 0 1;
 }
 
 .tab-btn.active {
+<<<<<<< HEAD
     background: #0b0b0b;
     color: #00d7ff;
+=======
+    background: #1e1e1e;
+    color: #fff;
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 }
 
 #home {
@@ -155,6 +216,7 @@ Screen {
     background: #0b0b0b;
 }
 
+<<<<<<< HEAD
 #chat-welcome {
     height: 1fr;
     align: center middle;
@@ -163,6 +225,11 @@ Screen {
 
 #home-card {
     background: transparent;
+=======
+#home-card {
+    background: #111;
+    border: solid #1e1e1e;
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     padding: 2 4;
     width: 70%;
     max-width: 80;
@@ -203,6 +270,7 @@ Screen {
     width: 30%;
     min-width: 28;
     background: #111;
+<<<<<<< HEAD
 }
 
 /* Command Palette - inline overlay */
@@ -283,13 +351,20 @@ Screen {
 #chat-empty {
     color: #666;
     text-align: center;
+=======
+    border-left: solid #1e1e1e;
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 }
 
 """
 
     def compose(self) -> ComposeResult:
+<<<<<<< HEAD
         # Don't show header - no "AIClient" title
         # yield Header()
+=======
+        yield Header()
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 
         with Horizontal(id="tab-bar"):
             yield Button("Home", id="tab-home", classes="tab-btn active")
@@ -297,7 +372,11 @@ Screen {
 
         with Vertical(id="home"):
             with Vertical(id="home-card"):
+<<<<<<< HEAD
                 yield Label("irir", id="home-title")
+=======
+                yield Label("opencode", id="home-title")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
                 yield Label("AI assistant", id="home-subtitle")
                 yield Label(
                     "Ask anything, summarize YouTube, or compare model responses.",
@@ -308,10 +387,13 @@ Screen {
                     id="home-hints",
                 )
 
+<<<<<<< HEAD
         # Chat Welcome Screen (clean interface)
         with Vertical(id="chat-welcome"):
             yield WelcomeScreen()
 
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         # === EXISTING UI (UNCHANGED) ===
 
         # Top Bar
@@ -342,20 +424,35 @@ Screen {
                     yield Button("Export", id="export-conv")
                     yield Button("Import", id="import-conv")
 
+<<<<<<< HEAD
             yield MessageHistory(manager=None, id="chat-history")
+=======
+            yield ScrollableContainer(id="chat-history")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             yield Sidebar(id="sidebar")
 
         # Input area
         with Vertical(id="input-area"):
             yield Input(
+<<<<<<< HEAD
                 placeholder="Type a message (or YouTube URL)... (Press / for commands)",
                 id="user-input",
             )
             yield SlashCommandMenu(id="slash-menu")
+=======
+                placeholder="Type a message (or YouTube URL)...",
+                id="user-input",
+            )
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             with Horizontal():
                 yield Button("Send", id="send-btn", variant="primary")
                 yield Button("Send to Selected", id="send-selected")
 
+<<<<<<< HEAD
+=======
+        yield Footer()
+
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     def _set_active_tab(self, tab_id: str):
         for btn_id in ("tab-home", "tab-chat"):
             try:
@@ -367,6 +464,7 @@ Screen {
             except Exception:
                 pass
 
+<<<<<<< HEAD
     def show_welcome_splash(self):
         """Show the initial welcome splash screen, hide tabs."""
         try:
@@ -400,14 +498,19 @@ Screen {
         except Exception:
             pass
 
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     def show_home(self, user_action: bool = False):
         if user_action:
             self._tab_override = True
         self._active_tab = "home"
         try:
             self.query_one("#home").display = True
+<<<<<<< HEAD
             self.query_one("#chat-welcome").display = False
             self.query_one("#tab-bar").display = True
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         except Exception:
             pass
         for id_ in ("controls", "main", "input-area"):
@@ -423,6 +526,7 @@ Screen {
         self._active_tab = "chat"
         try:
             self.query_one("#home").display = False
+<<<<<<< HEAD
             self.query_one("#tab-bar").display = True
         except Exception:
             pass
@@ -445,6 +549,15 @@ Screen {
             self.query_one("#chat-welcome").display = not bool(has_msgs)
         except Exception:
             pass
+=======
+        except Exception:
+            pass
+        for id_ in ("controls", "main", "input-area"):
+            try:
+                self.query_one(f"#{id_}").display = True
+            except Exception:
+                pass
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         if not getattr(self, "_chat_reveal_done", False):
             self._chat_reveal_done = True
             try:
@@ -474,10 +587,17 @@ Screen {
         except Exception:
             return
         try:
+<<<<<<< HEAD
             tab_bar.styles.opacity = 0
             conversations.styles.opacity = 0
             tab_bar.styles.animate("opacity", 1.0, duration=0.25)
             conversations.styles.animate("opacity", 1.0, duration=0.35)
+=======
+            tab_bar.opacity = 0
+            conversations.opacity = 0
+            await tab_bar.animate("opacity", 1.0, duration=0.25)
+            await conversations.animate("opacity", 1.0, duration=0.35)
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         except Exception:
             pass
 
@@ -490,15 +610,22 @@ Screen {
             _log_exception("populate_models", e)
             models = []
 
+<<<<<<< HEAD
         # Determine default model from environment if present
         default_model = os.environ.get("MODERN_TUI_DEFAULT_MODEL", "llama3")
 
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         def _replace():
             try:
                 parent = self.query_one("#controls")
                 old = self.query_one("#model-selector")
                 old.remove()
+<<<<<<< HEAD
                 options = [(m.get('name'), m.get('name')) for m in models] or [(default_model, default_model)]
+=======
+                options = [(m['name'], m['name']) for m in models] or [("llama3", "llama3")]
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
                 parent.mount(Select(options, prompt="Select Model", id="model-selector"))
             except Exception:
                 pass
@@ -511,11 +638,14 @@ Screen {
             _replace()
 
     async def on_mount(self):
+<<<<<<< HEAD
         # Initialize the new ConversationManager
         self._manager = ConversationManager(
             storage_path=Path(__file__).resolve().parent / "conversations.json"
         )
         
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         # populate models without blocking UI
         self.populate_models()
         # state for summary preview/interaction
@@ -523,7 +653,11 @@ Screen {
         self._last_summary_widgets = []
         # spinner control flag
         self._spinner_running = False
+<<<<<<< HEAD
         # Conversations state (kept for backward compatibility)
+=======
+        # Conversations state
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         self._conversations = []
         self._current_conv_id = None
         self._show_agents = False
@@ -534,6 +668,7 @@ Screen {
         self._send_multi_mode = False
         self.load_conversations()
         self.render_conversation_list()
+<<<<<<< HEAD
         # Wire the MessageHistory instance to the ConversationManager now that it's initialized
         try:
             msg_history = self.query_one('#chat-history', MessageHistory)
@@ -546,6 +681,8 @@ Screen {
                     pass
         except Exception:
             pass
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         # ensure there is at least one conversation selected
         if not self._current_conv_id and self._conversations:
             self.select_conversation(self._conversations[0]['id'])
@@ -554,9 +691,12 @@ Screen {
         self._chat_reveal_done = False
         self.update_splash_visibility()
         self._set_sidebar_visibility(self._show_sidebar)
+<<<<<<< HEAD
         # Slash command menu state
         self._slash_menu_active = False
         self._slash_start_pos = -1
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 
         # Support smoke test mode (non-network): run a simulated multi-model send then exit
         try:
@@ -565,6 +705,7 @@ Screen {
                 asyncio.create_task(self.run_smoke_test())
         except Exception:
             pass
+<<<<<<< HEAD
     
     def on_input_changed(self, event: Input.Changed) -> None:
         """Handle input changes to show/hide slash command menu."""
@@ -605,6 +746,8 @@ Screen {
                     logging.getLogger(__name__).debug("on_input_changed: hide menu (no slash) failed (non-critical)")
         except Exception:
             logging.getLogger(__name__).exception("on_input_changed: unexpected error")
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 
     @work(thread=True)
     def _spinner_worker(self, message: str):
@@ -645,10 +788,17 @@ Screen {
             def _upd(ch=ch):
                 try:
                     if 'Spinner' in globals() and Spinner:
+<<<<<<< HEAD
                         lbl = self.query_one(f"#{spinner_id}-label", Label)
                         lbl.update(f"{message} {ch}")
                     else:
                         lbl = self.query_one(f"#{spinner_id}", Label)
+=======
+                        lbl = self.query_one(f"#{spinner_id}-label")
+                        lbl.update(f"{message} {ch}")
+                    else:
+                        lbl = self.query_one(f"#{spinner_id}")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
                         lbl.update(f"{message} {ch}")
                 except Exception:
                     pass
@@ -671,7 +821,11 @@ Screen {
             _remove()
 
     @work
+<<<<<<< HEAD
     async def get_ai_response(self, user_text, model_name, turn_id: Optional[str] = None):
+=======
+    async def get_ai_response(self, user_text, model_name, turn_id: str = None):
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         """Background worker to fetch AI response without freezing UI. Supports being called concurrently for different models."""
         chat_box = self.query_one("#chat-history")
         # Show model label so responses are clearly attributable
@@ -684,7 +838,11 @@ Screen {
         vid_id = self.extract_youtube_id(user_text)
         if vid_id:
             try:
+<<<<<<< HEAD
                 transcript = YouTubeTranscriptApi.get_transcript(vid_id)  # type: ignore
+=======
+                transcript = YouTubeTranscriptApi.get_transcript(vid_id)
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
                 full_text = " ".join([i.get('text', '') for i in transcript])
                 user_text = f"Analyze this YouTube video transcript: {full_text[:3000]}..."  # limit length
                 await chat_box.mount(Label(f"System: Fetched YouTube Transcript!", classes="system-msg"))
@@ -732,6 +890,7 @@ Screen {
                         continue
                     chunked_text += part
                     if time.monotonic() - last_update > 0.15 or len(chunked_text) - last_len > 200:
+<<<<<<< HEAD
                         try:
                             new_msg.update(chunked_text)  # type: ignore
                         except Exception:
@@ -745,6 +904,24 @@ Screen {
             except TypeError:
                 # fallback if iteration fails
                 pass
+=======
+                        new_msg.update(chunked_text)
+                        last_update = time.monotonic()
+                        last_len = len(chunked_text)
+                new_msg.update(chunked_text)
+            except TypeError:
+                # async iterable
+                async for chunk in stream:
+                    part = (chunk.get('message') or {}).get('content', '')
+                    if not part:
+                        continue
+                    chunked_text += part
+                    if time.monotonic() - last_update > 0.15 or len(chunked_text) - last_len > 200:
+                        new_msg.update(chunked_text)
+                        last_update = time.monotonic()
+                        last_len = len(chunked_text)
+                new_msg.update(chunked_text)
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         except Exception as e:
             await chat_box.mount(Label(f"Error streaming response: {e}", classes="error-msg"))
 
@@ -855,6 +1032,7 @@ Screen {
         if not conv:
             return
         self._current_conv_id = conv_id
+<<<<<<< HEAD
         
         # Try to use the new MessageHistory component if available
         try:
@@ -871,6 +1049,11 @@ Screen {
         # update chat title label
         try:
             title_lbl = self.query_one('#conv-title', Label)
+=======
+        # update chat title label
+        try:
+            title_lbl = self.query_one('#conv-title')
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             title_lbl.update(conv.get('title', ''))
         except Exception:
             # not mounted yet; mount at top of chat
@@ -955,7 +1138,11 @@ Screen {
         self.render_conversation_list()
         # update title label if present
         try:
+<<<<<<< HEAD
             title_lbl = self.query_one('#conv-title', Label)
+=======
+            title_lbl = self.query_one('#conv-title')
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             title_lbl.update(new_title)
         except Exception:
             pass
@@ -1083,8 +1270,12 @@ Screen {
             else:
                 # conv id to title lookup
                 conv = next((c for c in self._conversations if c['id'] == name), None)
+<<<<<<< HEAD
                 title = conv.get('title', '?') if conv else '?'
                 box.mount(Label(f"Confirm delete conversation: {title}?"))
+=======
+                box.mount(Label(f"Confirm delete conversation: {conv.get('title','?')}?"))
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             btns = Horizontal()
             btns.mount(Button('Confirm Delete', id=f'confirm-delete-{kind}-{self._sanitize_id(str(name))}'))
             btns.mount(Button('Cancel', id='cancel-delete'))
@@ -1115,11 +1306,16 @@ Screen {
         try:
             if not getattr(self, '_pending_delete', None):
                 return
+<<<<<<< HEAD
             pending = getattr(self, '_pending_delete', None)
             if not pending:
                 return
             kind = pending.get('kind')
             name = pending.get('name')
+=======
+            kind = self._pending_delete.get('kind')
+            name = self._pending_delete.get('name')
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             if kind == 'model':
                 # map sanitized name back to model name
                 models = self.list_models()
@@ -1189,7 +1385,10 @@ Screen {
     def pull_model(self, model_name: str):
         chat_box = self.query_one('#chat-history')
         sid = self._sanitize_id(model_name)
+<<<<<<< HEAD
         panel = None
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         # show per-model op indicator
         try:
             panel = self.query_one('#agents-panel')
@@ -1222,7 +1421,10 @@ Screen {
     def delete_model(self, model_name: str):
         chat_box = self.query_one('#chat-history')
         sid = self._sanitize_id(model_name)
+<<<<<<< HEAD
         panel = None
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         try:
             panel = self.query_one('#agents-panel')
             try:
@@ -1292,7 +1494,11 @@ Screen {
             append_text = f"\n\n[YouTube Transcript excerpt]\n{excerpt}\n"
 
             def _update():
+<<<<<<< HEAD
                 inp = self.query_one("#user-input", Input)
+=======
+                inp = self.query_one("#user-input")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
                 inp.value = (inp.value or "") + append_text
                 chat_box.mount(Label("System: Appended transcript to input.", classes="system-msg"))
                 try:
@@ -1392,10 +1598,13 @@ Screen {
         try:
             if getattr(self, "_tab_override", False):
                 return
+<<<<<<< HEAD
             # On startup, show welcome splash if there are no conversations yet
             if not self._conversations:
                 self.show_welcome_splash()
                 return
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
             has_msgs = bool(conv and conv.get('messages'))
             if has_msgs:
@@ -1411,6 +1620,7 @@ Screen {
                 return
             conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
             has_msgs = bool(conv and conv.get('messages'))
+<<<<<<< HEAD
             # Use the dedicated chat-welcome container (mounted in compose)
             try:
                 welcome_container = self.query_one("#chat-welcome")
@@ -1492,6 +1702,25 @@ Screen {
                             pass
                 except Exception:
                     logging.getLogger(__name__).exception("on_input_submitted: unexpected error handling user-input")
+=======
+            chat_box = self.query_one("#chat-history")
+            try:
+                welcome = self.query_one("#welcome-screen")
+            except Exception:
+                welcome = None
+            if has_msgs:
+                if welcome is not None:
+                    try:
+                        welcome.remove()
+                    except Exception:
+                        pass
+                return
+            if welcome is None:
+                try:
+                    chat_box.mount(WelcomeScreen(id="welcome-screen"))
+                except Exception:
+                    pass
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         except Exception:
             pass
 
@@ -1542,7 +1771,11 @@ Screen {
 
     def show_commands_overlay(self):
         try:
+<<<<<<< HEAD
             return smoke.run_smoke_test(self)
+=======
+            return await smoke.run_smoke_test(self)
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         except Exception:
             try:
                 logging.exception("Smoke test failed")
@@ -1564,6 +1797,7 @@ Screen {
         self._show_sidebar = not getattr(self, "_show_sidebar", False)
         self._set_sidebar_visibility(self._show_sidebar)
 
+<<<<<<< HEAD
     def action_command_palette(self) -> None:
         """Show command palette as modal screen."""
         try:
@@ -1591,10 +1825,19 @@ Screen {
 
     @staticmethod
     def _get_commands():
+=======
+    async def action_command_palette(self) -> None:
+        result = await self.push_screen(CommandPalette(commands=self._get_commands()))
+        if result:
+            await self.execute_command(result)
+
+    def _get_commands(self):
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         return DEFAULT_COMMANDS
 
     async def execute_command(self, command_id: str) -> None:
         try:
+<<<<<<< HEAD
             # FILE OPERATIONS
             if command_id == "file.new":
                 self.create_conversation()
@@ -1662,21 +1905,45 @@ Screen {
                 self.notify("Use send-selected button to compare", severity="information")
                 
             # VIEW & NAVIGATION
+=======
+            if command_id == "file.new":
+                self.create_conversation()
+            elif command_id == "file.save":
+                self.save_conversations()
+            elif command_id == "file.delete":
+                if self._current_conv_id:
+                    self.delete_conversation(self._current_conv_id)
+            elif command_id == "file.rename":
+                self.start_rename()
+            elif command_id == "file.export":
+                if self._current_conv_id:
+                    self.export_conversation(self._current_conv_id)
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             elif command_id == "view.home":
                 self.show_home(user_action=True)
             elif command_id == "view.chat":
                 self.show_chat(user_action=True)
+<<<<<<< HEAD
+=======
+            elif command_id == "view.toggle_sidebar":
+                self.toggle_sidebar()
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             elif command_id == "view.focus_input":
                 try:
                     self.query_one("#user-input").focus()
                 except Exception:
                     pass
+<<<<<<< HEAD
                     
             # QUICK ACTIONS
             elif command_id == "quick.interrupt":
                 self._spinner_running = False
             elif command_id == "quick.quit":
                 self.exit()
+=======
+            elif command_id == "quick.quit":
+                self.action_quit()
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             else:
                 try:
                     self.notify(f"Command not implemented: {command_id}", severity="warning")
@@ -1704,7 +1971,11 @@ Screen {
                 new_content = f.read()
             def _update():
                 try:
+<<<<<<< HEAD
                     inp = self.query_one('#user-input', Input)
+=======
+                    inp = self.query_one('#user-input')
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
                     inp.value = new_content
                     self.query_one('#chat-history').mount(Label('System: Imported edits from external editor.', classes='system-msg'))
                 except Exception:
@@ -1720,14 +1991,22 @@ Screen {
                 pass
 
     # ---- Comparison & diff helpers ----
+<<<<<<< HEAD
     def _get_response_text(self, turn_id: Optional[str], model_name: Optional[str]) -> str:
+=======
+    def _get_response_text(self, turn_id: str, model_name: str) -> str:
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         """Delegate to compare.get_response_text for clarity."""
         try:
             return compare.get_response_text(self, turn_id, model_name)
         except Exception:
             return ''
 
+<<<<<<< HEAD
     def handle_compare(self, turn_id: str, m1: Optional[str] = None, m2: Optional[str] = None):
+=======
+    def handle_compare(self, turn_id: str, m1: str = None, m2: str = None):
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         """Delegate compare/diff handling to modular helper."""
         try:
             return compare.handle_compare(self, turn_id, m1=m1, m2=m2)
@@ -1744,7 +2023,11 @@ Screen {
         elif event.button.id == "tab-chat":
             self.show_chat(user_action=True)
         elif event.button.id == "send-btn":
+<<<<<<< HEAD
             inp = self.query_one("#user-input", Input)
+=======
+            inp = self.query_one("#user-input")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             user_text = inp.value
             selector = self.query_one("#model-selector")
             model = getattr(selector, "value", None) or "llama3" # Default fallback
@@ -1766,7 +2049,11 @@ Screen {
                 self.get_ai_response(user_text, model)
                 inp.value = ""
         elif event.button.id == "btn-yt":
+<<<<<<< HEAD
             inp = self.query_one("#user-input", Input)
+=======
+            inp = self.query_one("#user-input")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             user_text = inp.value or ""
             if not user_text:
                 self.query_one("#chat-history").mount(Label("Please paste a YouTube URL into the input first.", classes="error-msg"))
@@ -1778,7 +2065,11 @@ Screen {
                 model = getattr(selector, "value", None) or "llama3"
                 self.fetch_and_process_transcript(user_text, action, model)
         elif event.button.id == "send-selected":
+<<<<<<< HEAD
             inp = self.query_one("#user-input", Input)
+=======
+            inp = self.query_one("#user-input")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             user_text = inp.value or ""
             if not user_text:
                 self.query_one('#chat-history').mount(Label('Please enter a message to send.', classes='error-msg'))
@@ -1837,7 +2128,11 @@ Screen {
             self.start_rename()
         elif event.button.id == "save-rename":
             try:
+<<<<<<< HEAD
                 inp = self.query_one('#rename-input', Input)
+=======
+                inp = self.query_one('#rename-input')
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
                 new_title = inp.value
                 # cleanup rename widgets
                 for child in list(getattr(self.query_one('#conversations'), 'children', [])):
@@ -1889,15 +2184,25 @@ Screen {
                     if name in self._selected_models:
                         self._selected_models.remove(name)
                         try:
+<<<<<<< HEAD
                             btn = self.query_one(f"#select-{s}", Button)
                             btn.label = 'Include'
+=======
+                            btn = self.query_one(f"#select-{s}")
+                            btn.update('Include')
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
                         except Exception:
                             pass
                     else:
                         self._selected_models.add(name)
                         try:
+<<<<<<< HEAD
                             btn = self.query_one(f"#select-{s}", Button)
                             btn.label = 'Included'
+=======
+                            btn = self.query_one(f"#select-{s}")
+                            btn.update('Included')
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
                         except Exception:
                             pass
                     break
@@ -2010,7 +2315,11 @@ Screen {
             self.select_conversation(cid)
         elif event.button.id == "append-summary":
             # Append the last generated summary to input
+<<<<<<< HEAD
             inp = self.query_one("#user-input", Input)
+=======
+            inp = self.query_one("#user-input")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             inp.value = (inp.value or "") + "\n\n" + (getattr(self, "_last_summary", "") or "")
             for w in getattr(self, "_last_summary_widgets", []):
                 try:
@@ -2020,7 +2329,11 @@ Screen {
             self._last_summary_widgets = []
             self.query_one("#chat-history").mount(Label("System: Appended summary to input.", classes="system-msg"))
         elif event.button.id == "replace-summary":
+<<<<<<< HEAD
             inp = self.query_one("#user-input", Input)
+=======
+            inp = self.query_one("#user-input")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             inp.value = getattr(self, "_last_summary", "") or ""
             for w in getattr(self, "_last_summary_widgets", []):
                 try:
@@ -2041,8 +2354,12 @@ Screen {
             chat_box = self.query_one("#chat-history")
             summary = getattr(self, "_last_summary", "") or ""
             if TextArea:
+<<<<<<< HEAD
                 editor = TextArea(id="summary-editor")
                 editor.load_text(summary)
+=======
+                editor = TextArea(value=summary, id="summary-editor")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             else:
                 editor = Input(value=summary, id="summary-editor")
                 chat_box.mount(Label("Note: editor is single-line fallback.", classes="system-msg"))
@@ -2057,12 +2374,21 @@ Screen {
             # Save edited summary and update preview
             try:
                 editor = self.query_one("#summary-editor")
+<<<<<<< HEAD
                 new_summary = ""
                 if hasattr(editor, "text"):
                     new_summary = getattr(editor, "text", "")
                 elif hasattr(editor, "value"):
                     new_summary = getattr(editor, "value", "")
                 new_summary = new_summary or ""
+=======
+                new_summary = getattr(editor, "value", None) or ""
+                if hasattr(editor, "get_value"):
+                    try:
+                        new_summary = editor.get_value()
+                    except Exception:
+                        pass
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             except Exception:
                 new_summary = getattr(self, "_last_summary", "") or ""
             self._last_summary = new_summary
@@ -2135,8 +2461,12 @@ Screen {
         }
         for wid, (full, short) in labels.items():
             try:
+<<<<<<< HEAD
                 btn = self.query_one(f'#{wid}', Button)
                 btn.label = short if compact else full
+=======
+                self.query_one(f'#{wid}').label = short if compact else full
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
             except Exception:
                 pass
 
@@ -2150,6 +2480,7 @@ Screen {
     def on_key(self, event):
         """Global key handler for quick actions: Tab (agents), Ctrl+P (command palette), Ctrl+X then E (external editor)."""
         k = event.key
+<<<<<<< HEAD
         
         # Handle slash menu navigation
         if self._slash_menu_active:
@@ -2196,6 +2527,17 @@ Screen {
                 pass
             return
         # Ctrl+X: external editor trigger
+=======
+        if k == 'tab':
+            self.toggle_agents()
+            return
+        if k == 'ctrl+p':
+            try:
+                asyncio.create_task(self.action_command_palette())
+            except Exception:
+                pass
+            return
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         if k == 'ctrl+x':
             self._awaiting_editor_key = True
             try:
@@ -2208,7 +2550,10 @@ Screen {
                 self._awaiting_editor_key = False
             threading.Thread(target=_clear, daemon=True).start()
             return
+<<<<<<< HEAD
         # E after Ctrl+X: open editor
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         if self._awaiting_editor_key and k and k.lower() == 'e':
             self._awaiting_editor_key = False
             self.open_external_editor()

@@ -1,3 +1,19 @@
+<<<<<<< HEAD
+=======
+"""
+Welcome Screen Component for IRIR
+==================================
+
+Beautiful OpenCode-style welcome screen that appears when user clicks Chat tab.
+Features:
+- Large IRIR logo
+- Prompt input with placeholder
+- Model selector
+- Tips section
+- Smooth animations
+"""
+
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 from textual.app import ComposeResult
 from textual.containers import Container, Vertical
 from textual.widgets import Static, Input
@@ -17,12 +33,17 @@ class WelcomeScreen(Container):
     }
 
     #welcome-container {
+<<<<<<< HEAD
         width: 60;
+=======
+        width: auto;
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         height: auto;
         align: center middle;
     }
 
     #logo {
+<<<<<<< HEAD
         width: 60;
         height: auto;
         content-align: center middle;
@@ -36,10 +57,26 @@ class WelcomeScreen(Container):
         border: solid #1e1e1e;
         padding: 1 2;
         margin: 2 0 2 0;
+=======
+        width: 100%;
+        height: auto;
+        content-align: center middle;
+        margin: 2 0;
+    }
+
+    #input-container {
+        width: 70%;
+        height: auto;
+        background: #151515;
+        border: tall #1e1e1e;
+        padding: 1 2;
+        margin: 2 0;
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     }
 
     #welcome-input {
         width: 100%;
+<<<<<<< HEAD
         background: transparent;
         border: none;
         color: #e6e6e6;
@@ -57,12 +94,33 @@ class WelcomeScreen(Container):
         height: auto;
         content-align: center middle;
         margin: 2 0;
+=======
+        background: #151515;
+        border: none;
+    }
+
+    #model-info {
+        width: 100%;
+        height: auto;
+        content-align: center middle;
+        margin: 1 0;
+        color: #7aa2f7;
+    }
+
+    #tip-section {
+        width: 100%;
+        height: auto;
+        content-align: center middle;
+        margin: 2 0;
+        color: #f2a65a;
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     }
     """
 
     def compose(self) -> ComposeResult:
         """Compose the welcome screen layout."""
         with Vertical(id="welcome-container"):
+<<<<<<< HEAD
             # Logo
             yield Static(self._render_logo(), id="logo")
             # Input section
@@ -111,11 +169,18 @@ class WelcomeScreen(Container):
         text.append(" for non-interactive scripting", style="dim #cccccc")
         text.justify = "center"
         return text
+=======
+            yield Logo(id="logo")
+            yield InputSection()
+            yield ModelInfo(id="model-info")
+            yield TipSection(id="tip-section")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 
 
 class Logo(Static):
     """Large IRIR logo in ASCII art style."""
 
+<<<<<<< HEAD
     DEFAULT_CSS = """
     Logo {
         width: 100%;
@@ -124,12 +189,15 @@ class Logo(Static):
     }
     """
 
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     def on_mount(self) -> None:
         """Create the logo when mounted."""
         logo_text = self._create_logo()
         self.update(logo_text)
 
     def _create_logo(self) -> Text:
+<<<<<<< HEAD
         """Create a large, prominent IRIR logo."""
         # Large blocky ASCII art logo
         logo_lines = [
@@ -144,6 +212,11 @@ class Logo(Static):
         text = Text()
         for line in logo_lines:
             text.append(line + "\n", style="bold #00d7ff")  # Bright cyan
+=======
+        """Create the IRIR logo with styling."""
+        logo = "opencode"
+        text = Text(logo, justify="center", style="bold white")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         return text
 
 
@@ -161,7 +234,11 @@ class InputSection(Container):
         """Compose input section."""
         with Container(id="input-container"):
             yield Input(
+<<<<<<< HEAD
                 placeholder='Ask anything... "Fix broken tests"',
+=======
+                placeholder='Ask anything... "What is the tech stack of this project?"',
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
                 id="welcome-input",
             )
 
@@ -169,6 +246,7 @@ class InputSection(Container):
 class ModelInfo(Static):
     """Display current model information."""
 
+<<<<<<< HEAD
     DEFAULT_CSS = """
     ModelInfo {
         width: 100%;
@@ -183,6 +261,13 @@ class ModelInfo(Static):
         model_text.append("Build", style="bold #7aa2f7")
         model_text.append("  Llama 3 2 3b ", style="#ffffff")
         model_text.append("Ollama (local)", style="dim #cccccc")
+=======
+    def on_mount(self) -> None:
+        """Set model info when mounted."""
+        model_text = Text("Build", style="bold #7aa2f7")
+        model_text.append("  Llama 3 2 3b ", style="white")
+        model_text.append("Ollama (local)", style="dim white")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 
         self.update(Align.center(model_text))
 
@@ -190,6 +275,7 @@ class ModelInfo(Static):
 class TipSection(Static):
     """Display helpful tips."""
 
+<<<<<<< HEAD
     DEFAULT_CSS = """
     TipSection {
         width: 100%;
@@ -206,6 +292,15 @@ class TipSection(Static):
         tip_text.append(" Use ", style="dim #cccccc")
         tip_text.append("irir run", style="bold #ffffff")
         tip_text.append(" for non-interactive scripting", style="dim #cccccc")
+=======
+    def on_mount(self) -> None:
+        """Set tip when mounted."""
+        tip_text = Text("● ", style="bold #f2a65a")
+        tip_text.append("Tip", style="bold #f2a65a")
+        tip_text.append(" Use ", style="dim white")
+        tip_text.append("opencode run", style="bold white")
+        tip_text.append(" for non-interactive scripting", style="dim white")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 
         self.update(Align.center(tip_text))
 

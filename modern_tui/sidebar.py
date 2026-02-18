@@ -1,3 +1,18 @@
+<<<<<<< HEAD
+=======
+"""
+Stunning Sidebar Component for IRIR
+====================================
+
+OpenCode-style sidebar with:
+- Context information (tokens, usage, cost)
+- LSP status
+- Build information
+- Keyboard shortcuts
+- Beautiful visual design
+"""
+
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 from textual.app import ComposeResult
 from textual.containers import Container, Vertical, VerticalScroll
 from textual.widgets import Static
@@ -22,6 +37,10 @@ class Sidebar(Container):
         width: 30%;
         height: 100%;
         background: #111;
+<<<<<<< HEAD
+=======
+        border-left: solid #1e1e1e;
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         padding: 1 2;
     }
 
@@ -96,7 +115,11 @@ class SidebarHeader(Static):
 
     def on_mount(self) -> None:
         """Set header text."""
+<<<<<<< HEAD
         text = Text("irir layout and theme", style="bold white", justify="center")
+=======
+        text = Text("OpenCode layout and theme", style="bold white", justify="center")
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         text.append("\n", style="")
         text.append("explanation", style="dim white")
         self.update(text)

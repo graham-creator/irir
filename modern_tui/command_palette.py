@@ -1,3 +1,17 @@
+<<<<<<< HEAD
+=======
+"""
+Command Palette for IRIR (Ctrl+P)
+=================================
+
+OpenCode-style command palette with:
+- Fuzzy search
+- Command categories
+- Keyboard navigation
+- Quick actions
+"""
+
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 from dataclasses import dataclass
 from typing import Callable, List, Optional
 
@@ -56,16 +70,24 @@ class Command:
 
 
 DEFAULT_COMMANDS = [
+<<<<<<< HEAD
     # FILE OPERATIONS
+=======
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     Command(
         id="file.new",
         name="New Conversation",
         description="Start a new conversation",
+<<<<<<< HEAD
         category="File Operations",
+=======
+        category="File",
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         shortcut="Ctrl+N",
         keywords=["new", "create", "start"],
     ),
     Command(
+<<<<<<< HEAD
         id="file.search",
         name="Search Conversations",
         description="Find conversations by name or content",
@@ -109,11 +131,20 @@ DEFAULT_COMMANDS = [
         description="Rename current conversation",
         category="File Operations",
         keywords=["rename", "title"],
+=======
+        id="file.save",
+        name="Save Conversation",
+        description="Save current conversation",
+        category="File",
+        shortcut="Ctrl+S",
+        keywords=["save", "export"],
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     ),
     Command(
         id="file.delete",
         name="Delete Conversation",
         description="Delete current conversation",
+<<<<<<< HEAD
         category="File Operations",
         keywords=["delete", "remove"],
     ),
@@ -269,12 +300,37 @@ DEFAULT_COMMANDS = [
         name="Go to Home",
         description="Switch to home tab",
         category="View & Navigation",
+=======
+        category="File",
+        keywords=["delete", "remove"],
+    ),
+    Command(
+        id="file.rename",
+        name="Rename Conversation",
+        description="Rename current conversation",
+        category="File",
+        keywords=["rename", "title"],
+    ),
+    Command(
+        id="file.export",
+        name="Export to Markdown",
+        description="Export conversation as markdown",
+        category="File",
+        keywords=["export", "md", "markdown"],
+    ),
+    Command(
+        id="view.home",
+        name="Go to Home",
+        description="Switch to home tab",
+        category="View",
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         keywords=["home", "tab"],
     ),
     Command(
         id="view.chat",
         name="Go to Chat",
         description="Switch to chat tab",
+<<<<<<< HEAD
         category="View & Navigation",
         keywords=["chat", "tab"],
     ),
@@ -288,11 +344,36 @@ DEFAULT_COMMANDS = [
     ),
     
     # QUICK ACTIONS
+=======
+        category="View",
+        keywords=["chat", "tab"],
+    ),
+    Command(
+        id="view.toggle_sidebar",
+        name="Toggle Sidebar",
+        description="Show/hide context sidebar",
+        category="View",
+        shortcut="Ctrl+B",
+        keywords=["sidebar", "toggle", "hide"],
+    ),
+    Command(
+        id="view.focus_input",
+        name="Focus Input",
+        description="Focus the message input field",
+        category="View",
+        shortcut="/",
+        keywords=["input", "focus", "type"],
+    ),
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     Command(
         id="quick.interrupt",
         name="Interrupt",
         description="Stop current operation",
+<<<<<<< HEAD
         category="Quick Actions",
+=======
+        category="Quick",
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         shortcut="Esc",
         keywords=["stop", "cancel", "interrupt"],
     ),
@@ -300,7 +381,11 @@ DEFAULT_COMMANDS = [
         id="quick.quit",
         name="Quit",
         description="Exit application",
+<<<<<<< HEAD
         category="Quick Actions",
+=======
+        category="Quick",
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
         shortcut="Ctrl+Q",
         keywords=["quit", "exit", "close"],
     ),
@@ -308,6 +393,7 @@ DEFAULT_COMMANDS = [
 
 
 class CommandPalette(ModalScreen):
+<<<<<<< HEAD
     """Command palette - can be inline or modal."""
 
     DEFAULT_CSS = """
@@ -355,25 +441,61 @@ class CommandPalette(ModalScreen):
         color: #888888;
         text-align: right;
         align: right middle;
+=======
+    """Command palette modal screen."""
+
+    DEFAULT_CSS = """
+    CommandPalette {
+        align: center top;
+        background: rgba(0, 0, 0, 0.85);
+    }
+
+    #palette-container {
+        width: 80;
+        height: auto;
+        max-height: 30;
+        margin: 4 0;
+        background: #1a1a1a;
+        border: thick #00ffff;
+    }
+
+    #palette-header {
+        width: 100%;
+        height: auto;
+        background: #003333;
+        padding: 1 2;
+        color: #00ffff;
+        text-style: bold;
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     }
 
     #palette-search {
         width: 100%;
+<<<<<<< HEAD
         padding: 1 2 0 2;
         margin: 0;
+=======
+        padding: 0 2;
+        margin: 1 0;
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     }
 
     #search-input {
         width: 100%;
+<<<<<<< HEAD
         border: none;
         background: #080808;
         color: #eef3f6;
         padding: 0 1;
+=======
+        border: solid #00ffff;
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     }
 
     #results-container {
         width: 100%;
         height: auto;
+<<<<<<< HEAD
         max-height: 16;
         padding: 0 2;
         overflow: auto;
@@ -399,10 +521,59 @@ class CommandPalette(ModalScreen):
     .command-shortcut {
         text-align: right;
         color: #cfcfcf;
+=======
+        max-height: 20;
+        padding: 0 2 1 2;
+    }
+
+    #command-list {
+        width: 100%;
+        height: auto;
+        max-height: 18;
+        border: none;
+        background: #1a1a1a;
+    }
+
+    #no-results {
+        width: 100%;
+        height: 3;
+        content-align: center middle;
+        color: #666666;
+    }
+
+    #footer-hint {
+        width: 100%;
+        height: auto;
+        padding: 1 2;
+        background: #111111;
+        color: #666666;
+        text-align: center;
+    }
+
+    .command-item {
+        width: 100%;
+        height: auto;
+        padding: 1 2;
+    }
+
+    .command-item:hover,
+    .command-item.selected {
+        background: #003333;
+    }
+
+    .command-category {
+        color: #00ffff;
+        text-style: bold;
+    }
+
+    .hidden {
+        display: none;
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
     }
     """
 
     BINDINGS = [
+<<<<<<< HEAD
         Binding("escape", "quit", "Cancel", show=False),
         Binding("enter", "submit", "Submit", show=False),
         Binding("up", "select_previous", "Previous", show=False),
@@ -545,3 +716,155 @@ class CommandPalette(ModalScreen):
                 self.app.handle_palette_result(None)
         except Exception:
             pass
+=======
+        Binding("escape", "dismiss", "Close", show=False),
+        Binding("ctrl+p", "dismiss", "Close", show=False),
+        Binding("down", "cursor_down", "Down", show=False),
+        Binding("up", "cursor_up", "Up", show=False),
+    ]
+
+    selected_index: reactive[int] = reactive(0)
+
+    def __init__(self, commands: List[Command] = None):
+        super().__init__()
+        self.commands = commands or DEFAULT_COMMANDS
+        self.filtered_commands = self.commands.copy()
+
+    def compose(self) -> ComposeResult:
+        with Container(id="palette-container"):
+            yield Static("Command Palette", id="palette-header")
+            with Container(id="palette-search"):
+                yield Input(
+                    placeholder="Type a command or search...",
+                    id="search-input",
+                )
+            with Container(id="results-container"):
+                yield CommandList(id="command-list")
+                yield Static("No commands found", id="no-results", classes="hidden")
+            yield Static(
+                "↑↓ Navigate  •  Enter Execute  •  Esc Close",
+                id="footer-hint",
+            )
+
+    def on_mount(self) -> None:
+        self.query_one("#search-input", Input).focus()
+        self.update_results("")
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        if event.input.id == "search-input":
+            self.update_results(event.value)
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        if event.input.id == "search-input":
+            self.execute_selected_command()
+
+    def action_cursor_down(self) -> None:
+        if not self.filtered_commands:
+            return
+        self.selected_index = (self.selected_index + 1) % len(self.filtered_commands)
+        self.highlight_selected()
+
+    def action_cursor_up(self) -> None:
+        if not self.filtered_commands:
+            return
+        self.selected_index = (self.selected_index - 1) % len(self.filtered_commands)
+        self.highlight_selected()
+
+    def update_results(self, query: str) -> None:
+        if query:
+            self.filtered_commands = [cmd for cmd in self.commands if cmd.matches(query)]
+        else:
+            self.filtered_commands = self.commands.copy()
+
+        self.filtered_commands.sort(key=lambda c: c.category)
+
+        command_list = self.query_one("#command-list", CommandList)
+        command_list.clear()
+
+        if self.filtered_commands:
+            self.query_one("#no-results").add_class("hidden")
+            current_category = None
+            for cmd in self.filtered_commands:
+                if cmd.category != current_category:
+                    command_list.add_category(cmd.category)
+                    current_category = cmd.category
+                command_list.add_command(cmd)
+        else:
+            self.query_one("#no-results").remove_class("hidden")
+
+        self.selected_index = 0
+        self.highlight_selected()
+
+    def highlight_selected(self) -> None:
+        command_list = self.query_one("#command-list", CommandList)
+        command_list.highlight(self.selected_index)
+
+    def execute_selected_command(self) -> None:
+        if self.filtered_commands:
+            command = self.filtered_commands[self.selected_index]
+            self.dismiss(command.id)
+
+
+class CommandList(VerticalScroll):
+    """Scrollable list of commands."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.command_items: List[CommandItem] = []
+
+    def clear(self) -> None:
+        self.remove_children()
+        self.command_items = []
+
+    def add_category(self, category: str) -> None:
+        header = Static(f"─── {category} ───", classes="command-category")
+        self.mount(header)
+
+    def add_command(self, command: Command) -> None:
+        item = CommandItem(command)
+        self.mount(item)
+        self.command_items.append(item)
+
+    def highlight(self, index: int) -> None:
+        for idx, item in enumerate(self.command_items):
+            if idx == index:
+                item.add_class("selected")
+            else:
+                item.remove_class("selected")
+
+
+class CommandItem(Container):
+    """Individual command item."""
+
+    def __init__(self, command: Command):
+        super().__init__(classes="command-item")
+        self.command = command
+
+    def compose(self) -> ComposeResult:
+        yield CommandItemContent(self.command)
+
+
+class CommandItemContent(Static):
+    """Content of a command item."""
+
+    def __init__(self, command: Command):
+        super().__init__()
+        self.command = command
+
+    def on_mount(self) -> None:
+        text = Text()
+        text.append(self.command.name, style="bold white")
+        if self.command.shortcut:
+            text.append("  ", style="")
+            text.append(f"({self.command.shortcut})", style="dim cyan")
+        text.append("\n", style="")
+        text.append(self.command.description, style="dim white")
+        self.update(text)
+
+
+__all__ = [
+    "CommandPalette",
+    "Command",
+    "DEFAULT_COMMANDS",
+]
+>>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
