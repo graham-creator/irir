@@ -4,6 +4,14 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from textual.widgets import Label
 
 
+OLLAMA_OPTIONS = {
+    "num_ctx": 4096,
+    "num_gpu": 99,
+    "num_thread": 8,
+    "keep_alive": -1,
+}
+
+
 def summarize_text(ai, text: str, model_name: str) -> str:
     """Hierarchical summarization: chunk -> summarize -> combine -> summarize again.
 
@@ -17,6 +25,7 @@ def summarize_text(ai, text: str, model_name: str) -> str:
             resp = ollama.chat(
                 model=model_name,
                 messages=[{'role': 'user', 'content': f"Summarize the following text in concise bullet points:\n\n{chunk}"}],
+                options=OLLAMA_OPTIONS,
                 stream=False,
             )
             content = ""
@@ -38,6 +47,7 @@ def summarize_text(ai, text: str, model_name: str) -> str:
             resp2 = ollama.chat(
                 model=model_name,
                 messages=[{'role': 'user', 'content': f"Summarize the following text in concise bullet points:\n\n{combined}"}],
+                options=OLLAMA_OPTIONS,
                 stream=False,
             )
             final = (resp2.get('message') or {}).get('content', '') if isinstance(resp2, dict) else str(resp2)

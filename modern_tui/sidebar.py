@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 """
 Stunning Sidebar Component for IRIR
 ====================================
@@ -12,7 +10,6 @@ OpenCode-style sidebar with:
 - Beautiful visual design
 """
 
->>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 from textual.app import ComposeResult
 from textual.containers import Container, Vertical, VerticalScroll
 from textual.widgets import Static
@@ -20,6 +17,8 @@ from textual.reactive import reactive
 from rich.text import Text
 from rich.panel import Panel
 from rich.table import Table
+
+from .progress import PureProgressBar, ProgressStyle
 
 
 class Sidebar(Container):
@@ -34,13 +33,10 @@ class Sidebar(Container):
 
     DEFAULT_CSS = """
     Sidebar {
-        width: 30%;
+        width: 25%;
         height: 100%;
-        background: #111;
-<<<<<<< HEAD
-=======
-        border-left: solid #1e1e1e;
->>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
+        background: #1a1a1a;
+        border-left: solid #00ffff;
         padding: 1 2;
     }
 
@@ -59,7 +55,7 @@ class Sidebar(Container):
     .section-title {
         width: 100%;
         height: 1;
-        color: #e6e6e6;
+        color: #ffffff;
         text-style: bold;
         margin: 0 0 1 0;
     }
@@ -67,11 +63,11 @@ class Sidebar(Container):
     .section-content {
         width: 100%;
         height: auto;
-        color: #9a9a9a;
+        color: #666666;
     }
 
     .metric-label {
-        color: #9a9a9a;
+        color: #666666;
     }
 
     .metric-value {
@@ -80,11 +76,11 @@ class Sidebar(Container):
     }
 
     #context-section {
-        border-bottom: solid #1e1e1e;
+        border-bottom: solid #333333;
     }
 
     #lsp-section {
-        border-bottom: solid #1e1e1e;
+        border-bottom: solid #333333;
     }
 
     #shortcuts-section {
@@ -115,13 +111,9 @@ class SidebarHeader(Static):
 
     def on_mount(self) -> None:
         """Set header text."""
-<<<<<<< HEAD
-        text = Text("irir layout and theme", style="bold white", justify="center")
-=======
-        text = Text("OpenCode layout and theme", style="bold white", justify="center")
->>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
+        text = Text("IRIR", style="bold cyan", justify="center")
         text.append("\n", style="")
-        text.append("explanation", style="dim white")
+        text.append("AI Assistant", style="dim white")
         self.update(text)
 
 
@@ -174,15 +166,31 @@ class ContextMetrics(Static):
         text = Text()
 
         # Tokens
-        text.append(f"{self.tokens_used:,}", style="bold white")
+        text.append(f"{self.tokens_used:,}", style="bold cyan")
         text.append(" tokens\n", style="dim white")
 
         # Percentage
-        text.append(f"{percentage:.0f}%", style="bold white")
+        text.append(f"{percentage:.0f}%", style="bold yellow")
         text.append(" used\n", style="dim white")
 
+        # Progress bar
+        try:
+            progress_style = ProgressStyle(
+                start_color="#00ffff",
+                end_color="#ffffff",
+                background_color="#333333",
+                show_percentage=False,
+                horizontal_padding=0,
+                max_width=40,
+            )
+            bar = PureProgressBar(style=progress_style).render(percentage / 100)
+            text.append_text(bar)
+            text.append("\n", style="")
+        except Exception:
+            pass
+
         # Cost
-        text.append(f"${self.cost_spent:.2f}", style="bold white")
+        text.append(f"${self.cost_spent:.2f}", style="bold green")
         text.append(" spent", style="dim white")
 
         self.update(text)

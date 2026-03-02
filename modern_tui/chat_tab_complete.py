@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 """
 Complete Chat View for Your AIClient App
 =========================================
@@ -14,7 +12,6 @@ This replaces your current chat tab with:
 Drop this into your modern_tui folder and import it!
 """
 
->>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.widgets import Static, Input, RichLog, Button, Select
@@ -199,10 +196,7 @@ class ChatArea(Container):
 
 
 class WelcomeScreenSimple(Container):
-<<<<<<< HEAD
-=======
     """Simple welcome screen matching OpenCode style."""
->>>>>>> 244f663cf9ab4d014ded6891b188fdb0bd257b72
 
     DEFAULT_CSS = """
     WelcomeScreenSimple {
