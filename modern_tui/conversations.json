@@ -1,0 +1,54 @@
+{
+  "conversations": [
+    {
+      "id": "a70eaaa8",
+      "title": "Conversation 1",
+      "messages": [],
+      "last_updated": 1770786806.837681,
+      "model": "llama3"
+    },
+    {
+      "id": "1332350d",
+      "title": "hey",
+      "messages": [],
+      "last_updated": 1770787074.383068,
+      "model": "llama3"
+    },
+    {
+      "id": "edc1b7a0",
+      "title": "hey",
+      "messages": [],
+      "last_updated": 1770808017.6310074,
+      "model": "llama3"
+    },
+    {
+      "id": "45c3f652",
+      "title": "/",
+      "messages": [],
+      "last_updated": 1770974695.797094,
+      "model": "llama3"
+    },
+    {
+      "id": "e62e6723",
+      "title": "/",
+      "messages": [],
+      "last_updated": 1770974703.1773362,
+      "model": "llama3"
+    },
+    {
+      "id": "148a2dfe",
+      "title": "hey",
+      "messages": [],
+      "last_updated": 1770977551.0001361,
+      "model": "llama3"
+    },
+    {
+      "id": "c9203ce3",
+      "title": "hey",
+      "messages": [],
+      "last_updated": 1770981326.888406,
+      "model": "llama3"
+    }
+  ],
+  "current": "45c3f652"
+}
