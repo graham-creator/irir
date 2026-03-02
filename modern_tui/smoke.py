@@ -1,3 +1,5 @@
+from textual.widgets import Label
+
 import asyncio
 import time
 import uuid
@@ -5,7 +7,7 @@ import uuid
 async def run_smoke_test(ai):
     try:
         chat_box = ai.query_one('#chat-history')
-        await chat_box.mount(ai.Label('Smoke test: Starting simulated multi-model send...', classes='system-msg'))
+        await chat_box.mount(Label('Smoke test: Starting simulated multi-model send...', classes='system-msg'))
     except Exception:
         pass
 
@@ -66,7 +68,7 @@ async def run_smoke_test(ai):
         pass
 
     try:
-        await chat_box.mount(ai.Label('Smoke test: Completed; exiting.', classes='system-msg'))
+        await chat_box.mount(Label('Smoke test: Completed; exiting.', classes='system-msg'))
     except Exception:
         pass
     await asyncio.sleep(0.4)

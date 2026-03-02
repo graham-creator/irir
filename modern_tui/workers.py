@@ -1,5 +1,15 @@
 import time
+import ollama
 from youtube_transcript_api import YouTubeTranscriptApi
+from textual.widgets import Label
+
+
+OLLAMA_OPTIONS = {
+    "num_ctx": 4096,
+    "num_gpu": 99,
+    "num_thread": 8,
+    "keep_alive": -1,
+}
 
 
 def summarize_text(ai, text: str, model_name: str) -> str:
@@ -12,9 +22,10 @@ def summarize_text(ai, text: str, model_name: str) -> str:
     summaries = []
     for chunk in chunks:
         try:
-            resp = ai.ollama.chat(
+            resp = ollama.chat(
                 model=model_name,
                 messages=[{'role': 'user', 'content': f"Summarize the following text in concise bullet points:\n\n{chunk}"}],
+                options=OLLAMA_OPTIONS,
                 stream=False,
             )
             content = ""
@@ -33,9 +44,10 @@ def summarize_text(ai, text: str, model_name: str) -> str:
     combined = "\n\n".join(summaries)
     if len(summaries) > 1:
         try:
-            resp2 = ai.ollama.chat(
+            resp2 = ollama.chat(
                 model=model_name,
                 messages=[{'role': 'user', 'content': f"Summarize the following text in concise bullet points:\n\n{combined}"}],
+                options=OLLAMA_OPTIONS,
                 stream=False,
             )
             final = (resp2.get('message') or {}).get('content', '') if isinstance(resp2, dict) else str(resp2)
@@ -54,6 +66,14 @@ def fetch_transcript(vid_id: str):
     return full_text
 
 
+def list_models():
+    """Return the list of available Ollama models."""
+    try:
+        return ollama.list().get("models", [])
+    except Exception:
+        return []
+
+
 def spinner_worker(ai, message: str, spinner_id: str = "summarize-spinner"):
     """Spinner worker that runs in a thread - updates small label while long tasks run."""
     ai._spinner_running = True
@@ -67,7 +87,7 @@ def spinner_worker(ai, message: str, spinner_id: str = "summarize-spinner"):
                 existing.remove()
             except Exception:
                 pass
-            chat_box.mount(ai.Label(f"{message}", id=spinner_id, classes='system-msg'))
+            chat_box.mount(Label(f"{message}", id=spinner_id, classes='system-msg'))
         except Exception:
             pass
 
