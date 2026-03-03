@@ -1,0 +1,11 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local runtime artifacts
+modern_tui_error.log
+
+# User-local conversation data
+conversations.json
+
+modern_tui_run.log
