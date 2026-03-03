@@ -30,13 +30,8 @@ def main():
         AIClient().run()
     except Exception:
         import traceback
-        tb = traceback.format_exc()
-        try:
-            with open('modern_tui_error.log', 'w', encoding='utf-8') as f:
-                f.write(tb)
-        except Exception:
-            pass
-        print("An unexpected error occurred while running the TUI. Details were written to modern_tui_error.log")
+        with open('modern_tui_error.log', 'w') as f:
+            f.write(traceback.format_exc())
         raise
 
 

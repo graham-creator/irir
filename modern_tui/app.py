@@ -585,15 +585,10 @@ Screen {
 
         # Save assistant response to conversation (include model metadata and turn id)
         try:
-            conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
-            if conv is not None:
-                msg = {'role': 'assistant', 'content': chunked_text, 'model': model_name}
-                if turn_id:
-                    msg['turn_id'] = turn_id
-                conv.setdefault('messages', []).append(msg)
-                conv['last_updated'] = time.time()
-                self.save_conversations()
-                self.render_conversation_list()
+            extra = {'model': model_name}
+            if turn_id:
+                extra['turn_id'] = turn_id
+            self._append_conversation_message('assistant', chunked_text, **extra)
         except Exception:
             pass
 
@@ -667,6 +662,30 @@ Screen {
         except Exception:
             pass
 
+    def _get_conversation(self, conv_id: str = None):
+        """Temporary adapter during state-system migration.
+
+        Centralizes lookup over legacy ``self._conversations`` while call sites
+        are incrementally moved away from direct list traversal.
+        """
+        target_id = conv_id or self._current_conv_id
+        if not target_id:
+            return None
+        return next((c for c in self._conversations if c['id'] == target_id), None)
+
+    def _append_conversation_message(self, role: str, content: str, **extra):
+        """Append a message to the current conversation and persist it."""
+        conv = self._get_conversation()
+        if conv is None:
+            return None
+        msg = {'role': role, 'content': content}
+        msg.update(extra)
+        conv.setdefault('messages', []).append(msg)
+        conv['last_updated'] = time.time()
+        self.save_conversations()
+        self.render_conversation_list()
+        return msg
+
     def _create_conversation_obj(self, title=None):
         cid = str(uuid.uuid4())[:8]
         return {
@@ -686,7 +705,7 @@ Screen {
         self.update_splash_visibility()
 
     def select_conversation(self, conv_id: str):
-        conv = next((c for c in self._conversations if c['id'] == conv_id), None)
+        conv = self._get_conversation(conv_id)
         if not conv:
             return
         self._current_conv_id = conv_id
@@ -749,7 +768,7 @@ Screen {
     def start_rename(self):
         # mount an input in the conversations sidebar for renaming
         try:
-            conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
+            conv = self._get_conversation()
             if not conv:
                 return
             conv_list = self.query_one('#conversations')
@@ -769,7 +788,7 @@ Screen {
             pass
 
     def finish_rename(self, new_title: str):
-        conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
+        conv = self._get_conversation()
         if not conv:
             return
         conv['title'] = new_title
@@ -783,7 +802,7 @@ Screen {
             pass
 
     def export_conversation(self, conv_id: str):
-        conv = next((c for c in self._conversations if c['id'] == conv_id), None)
+        conv = self._get_conversation(conv_id)
         if not conv:
             return
         p = Path(__file__).resolve().parent / f"conv_{conv_id}.json"
@@ -904,7 +923,7 @@ Screen {
                 box.mount(Label(f"Confirm delete model: {name}?"))
             else:
                 # conv id to title lookup
-                conv = next((c for c in self._conversations if c['id'] == name), None)
+                conv = self._get_conversation(name)
                 box.mount(Label(f"Confirm delete conversation: {conv.get('title','?')}?"))
             btns = Horizontal()
             btns.mount(Button('Confirm Delete', id=f'confirm-delete-{kind}-{self._sanitize_id(str(name))}'))
@@ -1068,7 +1087,7 @@ Screen {
     # (duplicate delete_model removed; use the earlier threaded implementation that reports per-panel progress)
     def set_conversation_model(self, model_name: str):
         try:
-            conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
+            conv = self._get_conversation()
             if conv is None:
                 return
             conv['model'] = model_name
@@ -1112,7 +1131,7 @@ Screen {
                 inp.value = (inp.value or "") + append_text
                 chat_box.mount(Label("System: Appended transcript to input.", classes="system-msg"))
                 try:
-                    conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
+                    conv = self._get_conversation()
                     if conv is not None:
                         conv['last_updated'] = time.time()
                         self.save_conversations()
@@ -1157,7 +1176,7 @@ Screen {
                 self._last_summary_widgets = [md, btns]
                 chat_box.mount(Label("System: Summary ready. Choose an action.", classes="system-msg"))
                 try:
-                    conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
+                    conv = self._get_conversation()
                     if conv is not None:
                         conv['last_updated'] = time.time()
                         self.save_conversations()
@@ -1219,7 +1238,7 @@ Screen {
 
     def _update_welcome_screen(self, force_remount: bool = False):
         try:
-            conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
+            conv = self._get_conversation()
             has_msgs = bool(conv and conv.get('messages'))
             chat_box = self.query_one("#chat-history")
             try:
@@ -1528,12 +1547,7 @@ Screen {
                 self.query_one("#chat-history").mount(Label(f"You: {user_text}", classes="user-msg"))
                 # Save to current conversation
                 try:
-                    conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
-                    if conv is not None:
-                        conv.setdefault('messages', []).append({'role': 'user', 'content': user_text})
-                        conv['last_updated'] = time.time()
-                        self.save_conversations()
-                        self.render_conversation_list()
+                    self._append_conversation_message('user', user_text)
                 except Exception:
                     pass
                 # Ask AI
@@ -1561,26 +1575,10 @@ Screen {
             else:
                 # Show user message once
                 self.query_one('#chat-history').mount(Label(f"You: {user_text}", classes='user-msg'))
-                # Save to conversation
-                try:
-                    conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
-                    if conv is not None:
-                        conv.setdefault('messages', []).append({'role': 'user', 'content': user_text})
-                        conv['last_updated'] = time.time()
-                        self.save_conversations()
-                        self.render_conversation_list()
-                except Exception:
-                    pass
-                # Create a turn id and group UI for aggregated responses
+                # Save to conversation and create a turn id for grouped responses
                 turn_id = str(uuid.uuid4())[:8]
-                # attach turn id to user message
                 try:
-                    conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
-                    if conv is not None:
-                        conv.setdefault('messages', []).append({'role': 'user', 'content': user_text, 'turn_id': turn_id})
-                        conv['last_updated'] = time.time()
-                        self.save_conversations()
-                        self.render_conversation_list()
+                    self._append_conversation_message('user', user_text, turn_id=turn_id)
                 except Exception:
                     pass
 
