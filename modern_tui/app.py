@@ -504,7 +504,7 @@ Screen {
                 await chat_box.mount(Label(f"Error fetching transcript: {e}", classes="error-msg"))
 
         # Build capped message history from current conversation
-        conv = self._get_conversation()
+        conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
         history = conv.get('messages', [])[-CONTEXT_WINDOW:] if conv else []
 
         messages = [
@@ -1227,7 +1227,7 @@ Screen {
         try:
             if getattr(self, "_tab_override", False):
                 return
-            conv = self._get_conversation()
+            conv = next((c for c in self._conversations if c['id'] == self._current_conv_id), None)
             has_msgs = bool(conv and conv.get('messages'))
             if has_msgs:
                 self.show_chat()
