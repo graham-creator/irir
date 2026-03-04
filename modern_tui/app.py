@@ -95,121 +95,372 @@ except Exception:
 
 class AIClient(App):
     CSS = """
-#main { height: 1fr; }
-#home { height: 1fr; }
-
+/* ── Root ──────────────────────────────────────────────────────────────── */
 Screen {
-    background: #0a0a0a;
-    color: #ffffff;
+    background: #05050f;
+    color: #c8d0e8;
 }
 
-#conversations {
-    width: 26%;
-    min-width: 20;
-    background: #1a1a1a;
-    border-right: solid #333333;
-    opacity: 1;
-}
-
-#conv-list {
-    height: 1fr;
-    overflow-y: auto;
-}
-
-#chat-history {
-    height: 1fr;
-    overflow-y: auto;
-    padding: 1 2;
-}
-
-#input-area {
-    height: 4;
-    background: #1a1a1a;
-    border-top: solid #333333;
-}
-
-.user-msg { color: #ffffff; }
-.ai-msg { color: #ffffff; }
-
-.system-msg { color: #00ffff; }
-.error-msg { color: #ff5c5c; }
-
+/* ── Tab bar ────────────────────────────────────────────────────────────── */
 #tab-bar {
-    background: #0a0a0a;
-    overflow-x: auto;
-    border-bottom: solid #333333;
+    background: #07071a;
+    border-bottom: solid #1a0a2e;
     height: 3;
-    opacity: 1;
+    overflow-x: auto;
 }
 
 .tab-btn {
-    background: #1a1a1a;
-    color: #ffffff;
-    border: solid #333333;
+    background: #0d0d20;
+    color: #445577;
+    border: solid #1a0a2e;
     margin: 0 1;
 }
 
-.tab-btn.active {
-    background: #111111;
-    color: #00ffff;
-    border: solid #00ffff;
+.tab-btn:hover {
+    background: #160d2e;
+    color: #a64dff;
+    border: solid #a64dff;
 }
 
+.tab-btn.active {
+    background: #100820;
+    color: #00e5ff;
+    border: solid #00e5ff;
+    text-style: bold;
+}
+
+/* ── Home / splash ──────────────────────────────────────────────────────── */
 #home {
     align: center middle;
-    background: #0a0a0a;
+    background: #05050f;
 }
 
 #home-card {
-    background: #1a1a1a;
-    border: solid #333333;
+    background: #0a0a1f;
+    border: solid #1a0a2e;
     padding: 2 4;
     width: 70%;
     max-width: 80;
 }
 
 #home-title {
-    color: #ffffff;
+    color: #00e5ff;
     text-style: bold;
 }
 
 #home-subtitle {
-    color: #999999;
+    color: #445577;
     padding-top: 1;
 }
 
 #home-copy {
-    color: #cccccc;
+    color: #8899bb;
     padding-top: 1;
 }
 
 #home-hints {
-    color: #888888;
+    color: #445566;
     padding-top: 1;
 }
 
+/* ── Controls bar ───────────────────────────────────────────────────────── */
+#controls {
+    background: #07071a;
+    border-bottom: solid #1a0a2e;
+    height: auto;
+    overflow-x: auto;
+    padding: 0 1;
+}
+
+/* ── Main layout ────────────────────────────────────────────────────────── */
+#main {
+    height: 1fr;
+}
+
+/* ── Conversations sidebar ──────────────────────────────────────────────── */
+#conversations {
+    width: 24;
+    min-width: 18;
+    background: #07071a;
+    border-right: solid #1a0a2e;
+}
+
+#conv-title-label {
+    color: #a64dff;
+    text-style: bold;
+    padding: 1 2 0 2;
+    height: 2;
+}
+
+#conv-search {
+    margin: 0 1;
+    border: solid #1a0a2e;
+    background: #0d0d20;
+    color: #c8d0e8;
+}
+
+#conv-search:focus {
+    border: solid #a64dff;
+}
+
+#conv-list {
+    height: 1fr;
+    overflow-y: auto;
+    padding: 0 1;
+}
+
+.conv-btn {
+    width: 100%;
+    background: #0d0d20;
+    color: #667799;
+    border: none;
+    margin: 0 0 0 0;
+    padding: 0 1;
+    height: 2;
+}
+
+.conv-btn:hover {
+    background: #160d2e;
+    color: #c8d0e8;
+}
+
+.conv-btn:focus {
+    background: #1a0a40;
+    color: #00e5ff;
+    border-left: solid #00e5ff;
+}
+
+/* Conversation action buttons */
+#conversations Horizontal {
+    height: auto;
+    padding: 1;
+}
+
+#conversations Horizontal Button {
+    height: 2;
+    margin: 0;
+    background: #0d0d20;
+    color: #445577;
+    border: none;
+    min-width: 0;
+    padding: 0 1;
+}
+
+#conversations Horizontal Button:hover {
+    background: #1a0a40;
+    color: #a64dff;
+}
+
+/* ── Chat history ───────────────────────────────────────────────────────── */
+#chat-history {
+    height: 1fr;
+    overflow-y: auto;
+    padding: 1 2;
+    background: #05050f;
+}
+
+/* Message bubbles */
+.user-msg {
+    color: #e8eeff;
+    background: #0d0d25;
+    border-left: thick #00e5ff;
+    padding: 0 2;
+    margin: 1 0;
+}
+
+.ai-msg {
+    color: #c8d0ff;
+    background: #0a0a1e;
+    border-left: thick #a64dff;
+    padding: 0 2;
+    margin: 1 0;
+}
+
+.system-msg {
+    color: #39ff6e;
+    background: #050f08;
+    border-left: thick #39ff6e;
+    padding: 0 2;
+    margin: 0;
+}
+
+.error-msg {
+    color: #ff4466;
+    background: #150508;
+    border-left: thick #ff2d78;
+    padding: 0 2;
+    margin: 0;
+}
+
+/* Rich message styling (new components) */
+.message-user {
+    background: #0d0d25;
+    border-left: thick #00e5ff;
+    padding: 0 2;
+    margin: 1 0;
+}
+
+.message-assistant {
+    background: #0a0a1e;
+    border-left: thick #a64dff;
+    padding: 0 2;
+    margin: 1 0;
+}
+
+.message-system {
+    background: #050f08;
+    border-left: thick #39ff6e;
+    padding: 0 1;
+    margin: 0;
+}
+
+.message-header {
+    text-style: bold;
+    height: 1;
+    margin: 0;
+}
+
+.message-header-user    { color: #00e5ff; }
+.message-header-assistant { color: #a64dff; }
+.message-header-system  { color: #39ff6e; }
+
+.message-content-user    { color: #e8eeff; }
+.message-content-assistant { color: #c8d0ff; }
+.message-separator {
+    border-bottom: solid #0d0d25;
+    height: 1;
+    margin: 0 0 1 0;
+}
+
+/* ── Input area ─────────────────────────────────────────────────────────── */
+#input-area {
+    height: auto;
+    background: #07071a;
+    border-top: solid #1a0a2e;
+    padding: 1 2;
+}
+
+#user-input {
+    background: #0d0d20;
+    color: #e8eeff;
+    border: solid #1a0a2e;
+}
+
+#user-input:focus {
+    border: solid #a64dff;
+}
+
+#input-area Horizontal {
+    height: auto;
+    margin-top: 1;
+}
+
+/* Send buttons */
+#send-btn {
+    background: #1a0a40;
+    color: #a64dff;
+    border: solid #a64dff;
+    margin-right: 1;
+}
+
+#send-btn:hover {
+    background: #a64dff;
+    color: #05050f;
+    text-style: bold;
+}
+
+#send-selected {
+    background: #001a22;
+    color: #00e5ff;
+    border: solid #00e5ff;
+}
+
+#send-selected:hover {
+    background: #00e5ff;
+    color: #05050f;
+    text-style: bold;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────────────── */
+#sidebar {
+    width: 28;
+    min-width: 24;
+    background: #07071a;
+    border-left: solid #1a0a2e;
+}
+
+/* ── Select / dropdown widgets ──────────────────────────────────────────── */
+Select {
+    background: #0d0d20;
+    border: solid #1a0a2e;
+    color: #8899bb;
+}
+
+Select:focus {
+    border: solid #a64dff;
+}
+
+/* ── Modal overlays ─────────────────────────────────────────────────────── */
+CommandPalette {
+    align: center top;
+    background: rgba(5, 5, 15, 0.92);
+}
+
+#palette-container {
+    width: 80;
+    height: auto;
+    max-height: 32;
+    margin: 3 0;
+    background: #0a0a1f;
+    border: thick #a64dff;
+}
+
+#palette-header {
+    background: #100820;
+    padding: 1 2;
+    color: #a64dff;
+    text-style: bold;
+}
+
+#search-input {
+    border: solid #a64dff;
+    background: #0d0d20;
+    color: #e8eeff;
+}
+
+.command-item:hover,
+.command-item.selected {
+    background: #1a0a40;
+}
+
+.command-category {
+    color: #a64dff;
+    text-style: bold;
+}
+
+/* ── Agents panel ───────────────────────────────────────────────────────── */
+#agents-panel {
+    background: #07071a;
+    border: solid #1a0a2e;
+    padding: 1;
+}
+
+#agents-title {
+    color: #a64dff;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+/* ── Utility ────────────────────────────────────────────────────────────── */
 .hidden {
     display: none;
 }
 
-/* Start hidden */
 #controls,
 #main,
 #input-area {
     display: none;
 }
-
-#controls {
-    overflow-x: auto;
-}
-
-#sidebar {
-    width: 25%;
-    min-width: 26;
-    background: #1a1a1a;
-    border-left: solid #00ffff;
-}
-
 """
 
     def compose(self) -> ComposeResult:

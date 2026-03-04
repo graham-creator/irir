@@ -1,13 +1,13 @@
 """
-Stunning Sidebar Component for IRIR
-====================================
+Sidebar — irir
+===============
 
-OpenCode-style sidebar with:
-- Context information (tokens, usage, cost)
-- LSP status
-- Build information
-- Keyboard shortcuts
-- Beautiful visual design
+Neon-plasma sidebar with:
+- Live pulse indicator (heartbeat dot)
+- Animated context usage bar
+- Model info badge
+- Clean shortcut table
+- Subtle scanline texture via Unicode
 """
 
 from textual.app import ComposeResult
@@ -15,379 +15,285 @@ from textual.containers import Container, Vertical, VerticalScroll
 from textual.widgets import Static
 from textual.reactive import reactive
 from rich.text import Text
-from rich.panel import Panel
-from rich.table import Table
+from rich.align import Align
 
 from .progress import PureProgressBar, ProgressStyle
 
 
-class Sidebar(Container):
-    """OpenCode-style sidebar with context and status information."""
+# ── Heartbeat pulse ────────────────────────────────────────────────────────────
 
-    # Reactive properties
+class PulseDot(Static):
+    """Tiny beating dot that shows the app is alive."""
+
+    _frame: reactive[int] = reactive(0)
+
+    FRAMES = [
+        ("◉", "#ff2d78"),
+        ("◉", "#ff5294"),
+        ("○", "#441122"),
+        ("○", "#221111"),
+    ]
+
+    def on_mount(self) -> None:
+        self.set_interval(0.45, self._beat)
+        self._render()
+
+    def _beat(self) -> None:
+        self._frame = (self._frame + 1) % len(self.FRAMES)
+        self._render()
+
+    def _render(self) -> None:
+        ch, col = self.FRAMES[self._frame]
+        self.update(Text(ch, style=f"bold {col}"))
+
+
+# ── Section header ─────────────────────────────────────────────────────────────
+
+def _section(label: str) -> Static:
+    text = Text()
+    text.append("▸ ", style="bold #a64dff")
+    text.append(label.upper(), style="bold #667799")
+    return Static(text, classes="sb-section-head")
+
+
+# ── Context metrics ────────────────────────────────────────────────────────────
+
+class ContextMetrics(Static):
+    """Token usage with animated neon bar."""
+
     tokens_used: reactive[int] = reactive(0)
-    tokens_total: reactive[int] = reactive(100000)
+    tokens_total: reactive[int] = reactive(100_000)
     cost_spent: reactive[float] = reactive(0.0)
-    lsp_status: reactive[str] = reactive("LSPs will activate as files are read")
-    current_model: reactive[str] = reactive("Llama 3 2 3b")
+
+    def on_mount(self) -> None:
+        self._render()
+
+    def watch_tokens_used(self, _: int) -> None:
+        self._render()
+
+    def watch_cost_spent(self, _: float) -> None:
+        self._render()
+
+    def _render(self) -> None:
+        pct = self.tokens_used / max(1, self.tokens_total)
+
+        # Pick bar colour based on usage
+        if pct < 0.5:
+            bar_start, bar_end = "#00e5ff", "#a64dff"
+        elif pct < 0.8:
+            bar_start, bar_end = "#ffbb00", "#ff8800"
+        else:
+            bar_start, bar_end = "#ff4400", "#ff2d78"
+
+        style = ProgressStyle(
+            start_color=bar_start,
+            end_color=bar_end,
+            background_color="#0d0d1f",
+            show_percentage=False,
+            horizontal_padding=0,
+            max_width=28,
+            use_gradient=True,
+        )
+
+        bar_text = PureProgressBar(style=style).render(pct)
+
+        text = Text()
+        text.append(f"{self.tokens_used:,}", style="bold #00e5ff")
+        text.append(" / ", style="dim #445566")
+        text.append(f"{self.tokens_total:,}", style="dim #667799")
+        text.append(" tokens\n", style="dim #445566")
+        text.append_text(bar_text)
+        text.append("\n")
+        text.append(f"${self.cost_spent:.4f}", style="bold #39ff6e")
+        text.append(" spent", style="dim #445566")
+
+        self.update(text)
+
+
+# ── LSP status ─────────────────────────────────────────────────────────────────
+
+class LSPStatus(Static):
+    """LSP readiness indicator."""
+
+    status: reactive[str] = reactive("waiting for files…")
+
+    def on_mount(self) -> None:
+        self._render()
+
+    def watch_status(self, _: str) -> None:
+        self._render()
+
+    def _render(self) -> None:
+        text = Text()
+        if "active" in self.status.lower() or "●" in self.status:
+            text.append("● ", style="bold #39ff6e")
+        else:
+            text.append("○ ", style="dim #334455")
+        text.append(self.status, style="dim #667799")
+        self.update(text)
+
+
+# ── Model badge ────────────────────────────────────────────────────────────────
+
+class ModelBadge(Static):
+    """Currently active model name."""
+
+    model_name: reactive[str] = reactive("llama3")
+
+    def on_mount(self) -> None:
+        self._render()
+
+    def watch_model_name(self, _: str) -> None:
+        self._render()
+
+    def _render(self) -> None:
+        text = Text()
+        text.append("  ", style="")
+        text.append(f" {self.model_name} ", style="bold #00e5ff on #001122")
+        text.append("  ollama", style="dim #445566")
+        self.update(text)
+
+
+# ── Shortcuts ──────────────────────────────────────────────────────────────────
+
+class ShortcutsTable(Static):
+    """Keyboard shortcuts in a clean two-column layout."""
+
+    SHORTCUTS = [
+        ("ctrl+p", "command palette"),
+        ("tab", "agents panel"),
+        ("ctrl+n", "new chat"),
+        ("ctrl+f", "search convs"),
+        ("/", "slash commands"),
+        ("esc", "interrupt"),
+        ("ctrl+x e", "external editor"),
+    ]
+
+    def on_mount(self) -> None:
+        text = Text()
+        for key, action in self.SHORTCUTS:
+            text.append(f"  {key:<12}", style="bold #a64dff")
+            text.append(f"{action}\n", style="dim #667799")
+        self.update(text)
+
+
+# ── Sidebar header ─────────────────────────────────────────────────────────────
+
+class SidebarHeader(Static):
+    """irir wordmark + pulse dot."""
+
+    def on_mount(self) -> None:
+        text = Text(justify="center")
+        text.append("i", style="bold #ff2d78")
+        text.append("r", style="bold #a64dff")
+        text.append("i", style="bold #00e5ff")
+        text.append("r", style="bold #39ff6e")
+        self.update(Align.center(text))
+
+
+# ── Main sidebar ───────────────────────────────────────────────────────────────
+
+class Sidebar(Container):
+    """Full neon sidebar widget."""
 
     DEFAULT_CSS = """
     Sidebar {
-        width: 25%;
+        width: 28;
         height: 100%;
-        background: #1a1a1a;
-        border-left: solid #00ffff;
-        padding: 1 2;
+        background: #07071a;
+        border-left: solid #1a0a2e;
+        padding: 1 1;
     }
 
-    #sidebar-container {
+    Sidebar.hidden {
+        display: none;
+    }
+
+    #sb-inner {
         width: 100%;
         height: 100%;
     }
 
-    .sidebar-section {
-        width: 100%;
-        height: auto;
-        margin: 0 0 1 0;
-        padding: 1 0;
-    }
-
-    .section-title {
-        width: 100%;
+    .sb-section-head {
+        margin: 1 0 0 0;
         height: 1;
-        color: #ffffff;
-        text-style: bold;
+    }
+
+    .sb-sep {
+        height: 1;
+        color: #1a0a2e;
+    }
+
+    #sb-title-row {
+        width: 100%;
+        height: auto;
         margin: 0 0 1 0;
+        align: center middle;
     }
 
-    .section-content {
-        width: 100%;
-        height: auto;
-        color: #666666;
+    #sb-pulse {
+        width: 1;
+        height: 1;
+        margin: 0 1 0 0;
     }
 
-    .metric-label {
-        color: #666666;
+    #sb-wordmark {
+        width: 1fr;
+        height: 1;
     }
 
-    .metric-value {
-        color: #7aa2f7;
-        text-style: bold;
+    ContextMetrics {
+        margin: 1 0 0 1;
     }
 
-    #context-section {
-        border-bottom: solid #333333;
+    LSPStatus {
+        margin: 1 0 0 1;
     }
 
-    #lsp-section {
-        border-bottom: solid #333333;
+    ModelBadge {
+        margin: 1 0 0 0;
     }
 
-    #shortcuts-section {
-        margin-top: 2;
-    }
-    """
-
-    def compose(self) -> ComposeResult:
-        """Compose sidebar layout."""
-        with VerticalScroll(id="sidebar-container"):
-            yield SidebarHeader()
-            yield ContextSection()
-            yield LSPSection()
-            yield ShortcutsSection()
-
-
-class SidebarHeader(Static):
-    """Sidebar header with title."""
-
-    DEFAULT_CSS = """
-    SidebarHeader {
-        width: 100%;
-        height: auto;
-        margin: 0 0 2 0;
-        content-align: center top;
-    }
-    """
-
-    def on_mount(self) -> None:
-        """Set header text."""
-        text = Text("IRIR", style="bold cyan", justify="center")
-        text.append("\n", style="")
-        text.append("AI Assistant", style="dim white")
-        self.update(text)
-
-
-class ContextSection(Container):
-    """Context information section."""
-
-    DEFAULT_CSS = """
-    ContextSection {
-        width: 100%;
-        height: auto;
-        border-bottom: solid $primary-darken-2;
-        padding: 0 0 2 0;
-        margin: 0 0 2 0;
+    ShortcutsTable {
+        margin: 1 0 0 0;
     }
     """
 
     def compose(self) -> ComposeResult:
-        """Compose context section."""
-        yield Static("Context", classes="section-title")
-        yield ContextMetrics()
+        with VerticalScroll(id="sb-inner"):
+            # Header row: pulse dot + wordmark
+            with Container(id="sb-title-row"):
+                yield PulseDot(id="sb-pulse")
+                yield SidebarHeader(id="sb-wordmark")
+
+            yield Static("─" * 26, classes="sb-sep")
+
+            yield _section("model")
+            yield ModelBadge()
+
+            yield _section("context")
+            yield ContextMetrics()
+
+            yield _section("lsp")
+            yield LSPStatus()
+
+            yield _section("keys")
+            yield ShortcutsTable()
 
 
-class ContextMetrics(Static):
-    """Display context metrics."""
+# ── Detailed variant (same but wider) ─────────────────────────────────────────
 
-    tokens_used: reactive[int] = reactive(0)
-    tokens_total: reactive[int] = reactive(100000)
-    cost_spent: reactive[float] = reactive(0.0)
-
-    def on_mount(self) -> None:
-        """Initialize metrics display."""
-        self.update_metrics()
-
-    def watch_tokens_used(self, new_value: int) -> None:
-        """Update display when tokens change."""
-        self.update_metrics()
-
-    def watch_tokens_total(self, new_value: int) -> None:
-        """Update display when total changes."""
-        self.update_metrics()
-
-    def watch_cost_spent(self, new_value: float) -> None:
-        """Update display when cost changes."""
-        self.update_metrics()
-
-    def update_metrics(self) -> None:
-        """Update the metrics display."""
-        percentage = (self.tokens_used / self.tokens_total * 100) if self.tokens_total > 0 else 0
-
-        text = Text()
-
-        # Tokens
-        text.append(f"{self.tokens_used:,}", style="bold cyan")
-        text.append(" tokens\n", style="dim white")
-
-        # Percentage
-        text.append(f"{percentage:.0f}%", style="bold yellow")
-        text.append(" used\n", style="dim white")
-
-        # Progress bar
-        try:
-            progress_style = ProgressStyle(
-                start_color="#00ffff",
-                end_color="#ffffff",
-                background_color="#333333",
-                show_percentage=False,
-                horizontal_padding=0,
-                max_width=40,
-            )
-            bar = PureProgressBar(style=progress_style).render(percentage / 100)
-            text.append_text(bar)
-            text.append("\n", style="")
-        except Exception:
-            pass
-
-        # Cost
-        text.append(f"${self.cost_spent:.2f}", style="bold green")
-        text.append(" spent", style="dim white")
-
-        self.update(text)
-
-
-class LSPSection(Container):
-    """LSP status section."""
-
-    DEFAULT_CSS = """
-    LSPSection {
-        width: 100%;
-        height: auto;
-        border-bottom: solid $primary-darken-2;
-        padding: 0 0 2 0;
-        margin: 0 0 2 0;
-    }
-    """
-
-    def compose(self) -> ComposeResult:
-        """Compose LSP section."""
-        yield Static("LSP", classes="section-title")
-        yield LSPStatus()
-
-
-class LSPStatus(Static):
-    """Display LSP status."""
-
-    status: reactive[str] = reactive("LSPs will activate as files are read")
-
-    def on_mount(self) -> None:
-        """Initialize status display."""
-        self.update_status()
-
-    def watch_status(self, new_value: str) -> None:
-        """Update display when status changes."""
-        self.update_status()
-
-    def update_status(self) -> None:
-        """Update the status display."""
-        text = Text(self.status, style="dim white")
-        self.update(text)
-
-
-class ShortcutsSection(Container):
-    """Keyboard shortcuts section."""
-
-    DEFAULT_CSS = """
-    ShortcutsSection {
-        width: 100%;
-        height: auto;
-    }
-    """
-
-    def compose(self) -> ComposeResult:
-        """Compose shortcuts section."""
-        yield Static("Keyboard Shortcuts", classes="section-title")
-        yield ShortcutsTable()
-
-
-class ShortcutsTable(Static):
-    """Display keyboard shortcuts."""
-
-    def on_mount(self) -> None:
-        """Create shortcuts display."""
-        shortcuts = [
-            ("Tab", "agents"),
-            ("Ctrl+P", "commands"),
-            ("Ctrl+T", "variants"),
-            ("Ctrl+N", "new chat"),
-            ("Ctrl+S", "save"),
-            ("Esc", "interrupt"),
-        ]
-
-        text = Text()
-        for key, action in shortcuts:
-            text.append("  ", style="")
-            text.append(key, style="bold cyan")
-            text.append("  ", style="")
-            text.append(action, style="dim white")
-            text.append("\n", style="")
-
-        self.update(text)
-
-
-# Alternative: More detailed sidebar with panels
-class DetailedSidebar(Container):
-    """More detailed sidebar with panels."""
-
-    DEFAULT_CSS = """
-    DetailedSidebar {
-        width: 45;
-        height: 100%;
-        background: $surface;
-        border-left: thick $primary;
-        padding: 1;
-    }
-    """
-
-    def compose(self) -> ComposeResult:
-        """Compose detailed sidebar."""
-        with VerticalScroll():
-            yield DetailedContextPanel()
-            yield DetailedLSPPanel()
-            yield DetailedModelPanel()
-            yield DetailedShortcutsPanel()
-
-
-class DetailedContextPanel(Static):
-    """Detailed context panel with progress bar."""
-
-    def on_mount(self) -> None:
-        """Create detailed context display."""
-        table = Table(show_header=False, box=None, padding=(0, 1))
-        table.add_column("Label", style="dim white")
-        table.add_column("Value", style="bold cyan")
-
-        table.add_row("Tokens", "20,517 / 100,000")
-        table.add_row("Usage", "20%")
-        table.add_row("Cost", "$0.00")
-
-        panel = Panel(
-            table,
-            title="[bold cyan]Context[/]",
-            border_style="cyan",
-            padding=(1, 2),
-        )
-
-        self.update(panel)
-
-
-class DetailedLSPPanel(Static):
-    """Detailed LSP panel."""
-
-    def on_mount(self) -> None:
-        """Create LSP display."""
-        panel = Panel(
-            "[dim white]LSPs will activate as files are read[/]",
-            title="[bold cyan]LSP[/]",
-            border_style="cyan",
-            padding=(1, 2),
-        )
-        self.update(panel)
-
-
-class DetailedModelPanel(Static):
-    """Detailed model information panel."""
-
-    def on_mount(self) -> None:
-        """Create model display."""
-        text = Text()
-        text.append("Llama 3 2 3b\n", style="bold white")
-        text.append("Ollama (local)\n", style="dim white")
-        text.append("\nStatus: ", style="dim white")
-        text.append("● Ready", style="bold green")
-
-        panel = Panel(
-            text,
-            title="[bold cyan]Model[/]",
-            border_style="cyan",
-            padding=(1, 2),
-        )
-        self.update(panel)
-
-
-class DetailedShortcutsPanel(Static):
-    """Detailed shortcuts panel."""
-
-    def on_mount(self) -> None:
-        """Create shortcuts display."""
-        table = Table(show_header=False, box=None)
-        table.add_column("Key", style="bold cyan")
-        table.add_column("Action", style="dim white")
-
-        table.add_row("Tab", "agents")
-        table.add_row("Ctrl+P", "commands")
-        table.add_row("Ctrl+T", "variants")
-        table.add_row("Ctrl+N", "new chat")
-        table.add_row("Ctrl+S", "save")
-        table.add_row("Esc", "interrupt")
-
-        panel = Panel(
-            table,
-            title="[bold cyan]Shortcuts[/]",
-            border_style="cyan",
-            padding=(1, 2),
-        )
-        self.update(panel)
+class DetailedSidebar(Sidebar):
+    DEFAULT_CSS = Sidebar.DEFAULT_CSS.replace("width: 28;", "width: 38;")
 
 
 __all__ = [
     "Sidebar",
-    "SidebarHeader",
-    "ContextSection",
-    "ContextMetrics",
-    "LSPSection",
-    "LSPStatus",
-    "ShortcutsSection",
-    "ShortcutsTable",
     "DetailedSidebar",
+    "SidebarHeader",
+    "ContextMetrics",
+    "LSPStatus",
+    "ModelBadge",
+    "ShortcutsTable",
+    "PulseDot",
 ]

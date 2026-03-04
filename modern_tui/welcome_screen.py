@@ -1,197 +1,237 @@
 """
-Welcome Screen Component for IRIR
-==================================
+Welcome Screen — irir
+======================
 
-Beautiful OpenCode-style welcome screen that appears when user clicks Chat tab.
-Features:
-- Large IRIR logo
-- Prompt input with placeholder
-- Model selector
-- Tips section
-- Smooth animations
+Custom animated welcome screen with:
+- Plasma-pulse ASCII logo with colour cycling
+- Rotating prompts that feel alive
+- Glassmorphism input container
+- Animated status dots
 """
 
 from textual.app import ComposeResult
-from textual.containers import Container, Vertical
+from textual.containers import Container, Vertical, Horizontal
 from textual.widgets import Static, Input
+from textual.reactive import reactive
 from rich.text import Text
 from rich.align import Align
+import random
+
+
+# ── Logo frames for pseudo-animation ──────────────────────────────────────────
+
+LOGO_LINES = [
+    "  ██╗██████╗ ██╗██████╗  ",
+    "  ██║██╔══██╗██║██╔══██╗ ",
+    "  ██║██████╔╝██║██████╔╝ ",
+    "  ██║██╔══██╗██║██╔══██╗ ",
+    "  ██║██║  ██║██║██║  ██║ ",
+    "  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝ ",
+]
+
+# Plasma colour ramp — cycles through hot magenta → electric lime → cyan
+PLASMA_FRAMES = [
+    ["#ff2d78", "#ff5294", "#ff78b0", "#ffadd1", "#d475ff", "#a64dff"],
+    ["#d475ff", "#a64dff", "#7b2fff", "#5b8fff", "#2dc4ff", "#00e5ff"],
+    ["#00e5ff", "#00ffcc", "#00ff99", "#39ff6e", "#7fff3a", "#c8ff00"],
+    ["#c8ff00", "#ffee00", "#ffbb00", "#ff8800", "#ff4400", "#ff2d78"],
+]
+
+PROMPTS = [
+    "What models do you have pulled?",
+    "Summarise this YouTube video for me…",
+    "Compare llama3 vs mistral on this question…",
+    "What's the best way to structure this project?",
+    "Explain this error and how to fix it…",
+    "Generate unit tests for my function…",
+    "Rewrite this in a cleaner style…",
+    "What are the trade-offs here?",
+]
+
+
+class LogoDisplay(Static):
+    """Animated plasma logo — colour palette cycles every 1.5 s."""
+
+    _frame: reactive[int] = reactive(0)
+
+    def on_mount(self) -> None:
+        self.set_interval(1.5, self._next_frame)
+        self._render_logo()
+
+    def _next_frame(self) -> None:
+        self._frame = (self._frame + 1) % len(PLASMA_FRAMES)
+        self._render_logo()
+
+    def _render_logo(self) -> None:
+        palette = PLASMA_FRAMES[self._frame]
+        text = Text(justify="center")
+        for i, line in enumerate(LOGO_LINES):
+            colour = palette[i % len(palette)]
+            text.append(line + "\n", style=f"bold {colour}")
+        self.update(Align.center(text))
+
+
+class StatusDots(Static):
+    """Three pulsing dots that indicate readiness."""
+
+    _tick: reactive[int] = reactive(0)
+
+    def on_mount(self) -> None:
+        self.set_interval(0.55, self._pulse)
+        self._render()
+
+    def _pulse(self) -> None:
+        self._tick = (self._tick + 1) % 4
+        self._render()
+
+    def _render(self) -> None:
+        t = self._tick
+        dots = []
+        colors = ["#ff2d78", "#a64dff", "#00e5ff"]
+        for i, c in enumerate(colors):
+            if i == t % 3:
+                dots.append(f"[bold {c}]●[/]")
+            else:
+                dots.append("[dim #333355]●[/]")
+        self.update(Align.center(Text.from_markup("  ".join(dots))))
+
+
+class RotatingPrompt(Static):
+    """Placeholder that cycles through example prompts every 4 s."""
+
+    _idx: reactive[int] = reactive(0)
+
+    def on_mount(self) -> None:
+        self.set_interval(4.0, self._rotate)
+
+    def _rotate(self) -> None:
+        self._idx = (self._idx + 1) % len(PROMPTS)
+        try:
+            inp = self.app.query_one("#welcome-input", Input)
+            inp.placeholder = PROMPTS[self._idx]
+        except Exception:
+            pass
+
+
+class ModelBadge(Static):
+    """Glowing model name badge."""
+
+    def on_mount(self) -> None:
+        try:
+            from modern_tui import workers
+            models = workers.list_models()
+            if models:
+                name = models[0].get("name", "llama3")
+            else:
+                name = "no model"
+        except Exception:
+            name = "ollama"
+
+        text = Text(justify="center")
+        text.append("  running  ", style="dim #445566")
+        text.append(f" {name} ", style="bold #00e5ff on #001122")
+        text.append("  via ollama  ", style="dim #445566")
+        self.update(Align.center(text))
 
 
 class WelcomeScreen(Container):
-    """OpenCode-style welcome screen with logo and input."""
+    """Full welcome screen — shown when chat is empty."""
 
     DEFAULT_CSS = """
     WelcomeScreen {
         width: 100%;
         height: 100%;
-        background: #0a0a0a;
+        background: #05050f;
         align: center middle;
     }
 
-    #welcome-container {
-        width: auto;
+    #wc-shell {
+        width: 72;
         height: auto;
         align: center middle;
     }
 
-    #logo {
+    #logo-wrap {
         width: 100%;
         height: auto;
-        content-align: center middle;
-        margin: 2 0;
+        margin: 0 0 1 0;
     }
 
-    #input-container {
-        width: 70%;
+    #dots-wrap {
+        width: 100%;
+        height: 1;
+        margin: 0 0 2 0;
+    }
+
+    #badge-wrap {
+        width: 100%;
         height: auto;
-        background: #1a1a1a;
-        border: tall #00ffff;
+        margin: 0 0 2 0;
+    }
+
+    #input-shell {
+        width: 100%;
+        height: auto;
+        background: #0d0d1f;
+        border: tall #2a1a4a;
         padding: 1 2;
-        margin: 2 0;
+        margin: 0 0 2 0;
+    }
+
+    #input-shell:focus-within {
+        border: tall #a64dff;
     }
 
     #welcome-input {
         width: 100%;
-        background: #1a1a1a;
+        background: #0d0d1f;
+        color: #e8e8ff;
         border: none;
     }
 
-    #model-info {
+    #hint-row {
         width: 100%;
         height: auto;
-        content-align: center middle;
-        margin: 1 0;
-        color: #00ffff;
     }
 
-    #tip-section {
-        width: 100%;
+    #hint-left {
+        width: 1fr;
         height: auto;
-        content-align: center middle;
-        margin: 2 0;
-        color: #ffff00;
+        color: #334455;
+    }
+
+    #hint-right {
+        width: auto;
+        height: auto;
+        color: #334455;
     }
     """
 
     def compose(self) -> ComposeResult:
-        """Compose the welcome screen layout."""
-        with Vertical(id="welcome-container"):
-            yield Logo(id="logo")
-            yield InputSection()
-            yield ModelInfo(id="model-info")
-            yield TipSection(id="tip-section")
+        with Vertical(id="wc-shell"):
+            with Container(id="logo-wrap"):
+                yield LogoDisplay()
+            with Container(id="dots-wrap"):
+                yield StatusDots()
+            with Container(id="badge-wrap"):
+                yield ModelBadge()
+            with Container(id="input-shell"):
+                yield Input(
+                    placeholder=PROMPTS[0],
+                    id="welcome-input",
+                )
+                yield RotatingPrompt()
+            with Horizontal(id="hint-row"):
+                yield Static(
+                    "  [dim]ctrl+p[/] commands   [dim]tab[/] agents   [dim]esc[/] interrupt",
+                    id="hint-left",
+                    markup=True,
+                )
+                yield Static(
+                    "[dim]/ slash cmds[/]  ",
+                    id="hint-right",
+                    markup=True,
+                )
 
 
-class Logo(Static):
-    """Large IRIR logo in ASCII art style."""
-
-    def on_mount(self) -> None:
-        """Create the logo when mounted."""
-        logo_text = self._create_logo()
-        self.update(logo_text)
-
-    def _create_logo(self) -> Text:
-        """Create the IRIR logo with styling."""
-        logo = "opencode"
-        text = Text(logo, justify="center", style="bold white")
-        return text
-
-
-class InputSection(Container):
-    """Input section with placeholder."""
-
-    DEFAULT_CSS = """
-    InputSection {
-        width: 100%;
-        height: auto;
-    }
-    """
-
-    def compose(self) -> ComposeResult:
-        """Compose input section."""
-        with Container(id="input-container"):
-            yield Input(
-                placeholder='Ask anything... "What is the tech stack of this project?"',
-                id="welcome-input",
-            )
-
-
-class ModelInfo(Static):
-    """Display current model information."""
-
-    def on_mount(self) -> None:
-        """Set model info when mounted."""
-        model_text = Text("Build", style="bold #00ffff")
-        model_text.append("  Llama 3 2 3b ", style="white")
-        model_text.append("Ollama (local)", style="dim white")
-
-        self.update(Align.center(model_text))
-
-
-class TipSection(Static):
-    """Display helpful tips."""
-
-    def on_mount(self) -> None:
-        """Set tip when mounted."""
-        tip_text = Text("● ", style="bold #ffff00")
-        tip_text.append("Tip", style="bold #ffff00")
-        tip_text.append(" Use ", style="dim white")
-        tip_text.append("opencode run", style="bold white")
-        tip_text.append(" for non-interactive scripting", style="dim white")
-
-        self.update(Align.center(tip_text))
-
-
-class MinimalistLogo(Static):
-    """Minimalist IRIR logo with large text."""
-
-    DEFAULT_CSS = """
-    MinimalistLogo {
-        width: 100%;
-        height: 5;
-        content-align: center middle;
-        margin: 3 0;
-    }
-    """
-
-    def on_mount(self) -> None:
-        """Create minimalist logo."""
-        logo = "░▒▓ irir ▓▒░"
-        text = Text(logo, style="bold cyan", justify="center")
-        text.stylize("bold", 4, 8)
-        self.update(text)
-
-
-class GradientLogo(Static):
-    """IRIR logo with gradient effect."""
-
-    def on_mount(self) -> None:
-        """Create gradient logo."""
-        logo_lines = [
-            "██╗██████╗ ██╗██████╗ ",
-            "██║██╔══██╗██║██╔══██╗",
-            "██║██████╔╝██║██████╔╝",
-            "██║██╔══██╗██║██╔══██╗",
-            "██║██║  ██║██║██║  ██║",
-            "╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝",
-        ]
-
-        colors = ["cyan", "bright_cyan", "blue", "bright_blue", "blue", "cyan"]
-
-        text = Text()
-        for line, color in zip(logo_lines, colors):
-            text.append(line + "\n", style=f"bold {color}")
-
-        self.update(Align.center(text))
-
-
-__all__ = [
-    "WelcomeScreen",
-    "Logo",
-    "MinimalistLogo",
-    "GradientLogo",
-    "InputSection",
-    "ModelInfo",
-    "TipSection",
-]
+__all__ = ["WelcomeScreen"]
