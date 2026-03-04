@@ -1,12 +1,12 @@
 """
 Welcome Screen — irir
 ======================
-
-Custom animated welcome screen with:
-- Plasma-pulse ASCII logo with colour cycling
-- Rotating prompts that feel alive
-- Glassmorphism input container
-- Animated status dots
+opencode-inspired dark terminal home tab:
+  - Minimal full-bleed dark canvas
+  - Large animated ASCII wordmark with plasma colour sweep
+  - Input that glows on focus
+  - Rotating ghost prompts
+  - No header, no footer — pure terminal
 """
 
 from textual.app import ComposeResult
@@ -15,94 +15,90 @@ from textual.widgets import Static, Input
 from textual.reactive import reactive
 from rich.text import Text
 from rich.align import Align
-import random
 
 
-# ── Logo frames for pseudo-animation ──────────────────────────────────────────
-
-LOGO_LINES = [
-    "  ██╗██████╗ ██╗██████╗  ",
-    "  ██║██╔══██╗██║██╔══██╗ ",
-    "  ██║██████╔╝██║██████╔╝ ",
-    "  ██║██╔══██╗██║██╔══██╗ ",
-    "  ██║██║  ██║██║██║  ██║ ",
-    "  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝ ",
+LOGO = [
+    " ██╗██████╗ ██╗██████╗ ",
+    " ██║██╔══██╗██║██╔══██╗",
+    " ██║██████╔╝██║██████╔╝",
+    " ██║██╔══██╗██║██╔══██╗",
+    " ██║██║  ██║██║██║  ██║",
+    " ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝",
 ]
 
-# Plasma colour ramp — cycles through hot magenta → electric lime → cyan
-PLASMA_FRAMES = [
-    ["#ff2d78", "#ff5294", "#ff78b0", "#ffadd1", "#d475ff", "#a64dff"],
-    ["#d475ff", "#a64dff", "#7b2fff", "#5b8fff", "#2dc4ff", "#00e5ff"],
-    ["#00e5ff", "#00ffcc", "#00ff99", "#39ff6e", "#7fff3a", "#c8ff00"],
-    ["#c8ff00", "#ffee00", "#ffbb00", "#ff8800", "#ff4400", "#ff2d78"],
+PALETTES = [
+    ["#ff2d78", "#d964a8", "#b04dd8", "#7b2fff", "#5465ff", "#00e5ff"],
+    ["#00e5ff", "#00d4cc", "#00c299", "#39ff6e", "#8fff3a", "#c8ff00"],
+    ["#c8ff00", "#ffdd00", "#ffaa00", "#ff6600", "#ff3300", "#ff2d78"],
+    ["#a64dff", "#7b2fff", "#4466ff", "#00aaff", "#00e5ff", "#39ff6e"],
 ]
 
 PROMPTS = [
     "What models do you have pulled?",
-    "Summarise this YouTube video for me…",
-    "Compare llama3 vs mistral on this question…",
-    "What's the best way to structure this project?",
-    "Explain this error and how to fix it…",
-    "Generate unit tests for my function…",
-    "Rewrite this in a cleaner style…",
+    "Summarise this codebase for me…",
+    "Compare llama3 vs mistral on this task…",
+    "Best architecture for this feature?",
+    "Explain this error and fix it…",
+    "Generate tests for my module…",
+    "Refactor this into cleaner style…",
     "What are the trade-offs here?",
+    "Help me debug this async issue…",
+    "Write a git commit message for these changes…",
 ]
 
 
 class LogoDisplay(Static):
-    """Animated plasma logo — colour palette cycles every 1.5 s."""
+    """Plasma-animated wordmark."""
 
     _frame: reactive[int] = reactive(0)
 
     def on_mount(self) -> None:
-        self.set_interval(1.5, self._next_frame)
-        self._render_logo()
+        self.set_interval(1.8, self._next_frame)
+        self._draw()
 
     def _next_frame(self) -> None:
-        self._frame = (self._frame + 1) % len(PLASMA_FRAMES)
-        self._render_logo()
+        self._frame = (self._frame + 1) % len(PALETTES)
+        self._draw()
 
-    def _render_logo(self) -> None:
-        palette = PLASMA_FRAMES[self._frame]
+    def _draw(self) -> None:
+        palette = PALETTES[self._frame]
         text = Text(justify="center")
-        for i, line in enumerate(LOGO_LINES):
-            colour = palette[i % len(palette)]
-            text.append(line + "\n", style=f"bold {colour}")
+        for i, line in enumerate(LOGO):
+            col = palette[i % len(palette)]
+            text.append(line + "\n", style=f"bold {col}")
         self.update(Align.center(text))
 
 
-class StatusDots(Static):
-    """Three pulsing dots that indicate readiness."""
+class PulseDots(Static):
+    """Three dots that breathe in sequence."""
 
     _tick: reactive[int] = reactive(0)
 
     def on_mount(self) -> None:
-        self.set_interval(0.55, self._pulse)
-        self._render()
+        self.set_interval(0.5, self._beat)
+        self._draw()
 
-    def _pulse(self) -> None:
-        self._tick = (self._tick + 1) % 4
-        self._render()
+    def _beat(self) -> None:
+        self._tick = (self._tick + 1) % 6
+        self._draw()
 
-    def _render(self) -> None:
-        t = self._tick
-        dots = []
+    def _draw(self) -> None:
         colors = ["#ff2d78", "#a64dff", "#00e5ff"]
+        t = self._tick
+        parts = []
         for i, c in enumerate(colors):
-            if i == t % 3:
-                dots.append(f"[bold {c}]●[/]")
-            else:
-                dots.append("[dim #333355]●[/]")
-        self.update(Align.center(Text.from_markup("  ".join(dots))))
+            bright = (t % 3) == i
+            parts.append(f"[bold {c}]●[/]" if bright else "[#1a1a33]●[/]")
+        self.update(Align.center(Text.from_markup("   ".join(parts))))
 
 
-class RotatingPrompt(Static):
-    """Placeholder that cycles through example prompts every 4 s."""
+class GhostPrompt(Static):
+    """Cycles placeholder text on the input."""
 
     _idx: reactive[int] = reactive(0)
 
     def on_mount(self) -> None:
-        self.set_interval(4.0, self._rotate)
+        self.set_interval(3.5, self._rotate)
 
     def _rotate(self) -> None:
         self._idx = (self._idx + 1) % len(PROMPTS)
@@ -113,123 +109,134 @@ class RotatingPrompt(Static):
             pass
 
 
-class ModelBadge(Static):
-    """Glowing model name badge."""
+class ModelTag(Static):
+    """Inline model pill."""
 
     def on_mount(self) -> None:
         try:
             from modern_tui import workers
             models = workers.list_models()
-            if models:
-                name = models[0].get("name", "llama3")
-            else:
-                name = "no model"
+            name = models[0].get("name", "llama3") if models else "no model"
         except Exception:
             name = "ollama"
 
-        text = Text(justify="center")
-        text.append("  running  ", style="dim #445566")
-        text.append(f" {name} ", style="bold #00e5ff on #001122")
-        text.append("  via ollama  ", style="dim #445566")
-        self.update(Align.center(text))
+        t = Text(justify="center")
+        t.append("◆ ", style="#a64dff")
+        t.append(f"{name}", style="bold #c8d0e8")
+        t.append("  via ollama", style="dim #334455")
+        self.update(Align.center(t))
 
 
 class WelcomeScreen(Container):
-    """Full welcome screen — shown when chat is empty."""
+    """Full-bleed opencode-style home tab."""
 
     DEFAULT_CSS = """
     WelcomeScreen {
         width: 100%;
         height: 100%;
-        background: #05050f;
+        background: #060610;
         align: center middle;
+        overflow: hidden;
     }
 
-    #wc-shell {
-        width: 72;
+    #wc-col {
+        width: 66;
         height: auto;
         align: center middle;
     }
 
-    #logo-wrap {
+    #wc-logo {
         width: 100%;
         height: auto;
         margin: 0 0 1 0;
     }
 
-    #dots-wrap {
+    #wc-divider {
+        width: 100%;
+        height: 1;
+        margin: 0 0 1 0;
+    }
+
+    #wc-dots {
         width: 100%;
         height: 1;
         margin: 0 0 2 0;
     }
 
-    #badge-wrap {
+    #wc-model {
+        width: 100%;
+        height: 1;
+        margin: 0 0 3 0;
+    }
+
+    #wc-input-wrap {
         width: 100%;
         height: auto;
+        background: #0c0c20;
+        border: tall #1c1c38;
+        padding: 0 2;
         margin: 0 0 2 0;
     }
 
-    #input-shell {
-        width: 100%;
-        height: auto;
-        background: #0d0d1f;
-        border: tall #2a1a4a;
-        padding: 1 2;
-        margin: 0 0 2 0;
-    }
-
-    #input-shell:focus-within {
+    #wc-input-wrap:focus-within {
         border: tall #a64dff;
+        background: #0f0f26;
     }
 
     #welcome-input {
         width: 100%;
-        background: #0d0d1f;
-        color: #e8e8ff;
+        background: transparent;
+        color: #d0d8f0;
         border: none;
     }
 
-    #hint-row {
+    #wc-hints {
         width: 100%;
-        height: auto;
+        height: 1;
     }
 
-    #hint-left {
+    #wc-hint-l {
         width: 1fr;
-        height: auto;
-        color: #334455;
+        color: #1e1e3a;
     }
 
-    #hint-right {
+    #wc-hint-r {
         width: auto;
-        height: auto;
-        color: #334455;
+        color: #1e1e3a;
     }
     """
 
     def compose(self) -> ComposeResult:
-        with Vertical(id="wc-shell"):
-            with Container(id="logo-wrap"):
+        with Vertical(id="wc-col"):
+            with Container(id="wc-logo"):
                 yield LogoDisplay()
-            with Container(id="dots-wrap"):
-                yield StatusDots()
-            with Container(id="badge-wrap"):
-                yield ModelBadge()
-            with Container(id="input-shell"):
+            yield Static(
+                Align.center(Text.from_markup(
+                    "[#171730]" + "─" * 50 + "[/]"
+                )),
+                id="wc-divider",
+            )
+            with Container(id="wc-dots"):
+                yield PulseDots()
+            with Container(id="wc-model"):
+                yield ModelTag()
+            with Container(id="wc-input-wrap"):
                 yield Input(
                     placeholder=PROMPTS[0],
                     id="welcome-input",
                 )
-                yield RotatingPrompt()
-            with Horizontal(id="hint-row"):
+                yield GhostPrompt()
+            with Horizontal(id="wc-hints"):
                 yield Static(
-                    "  [dim]ctrl+p[/] commands   [dim]tab[/] agents   [dim]esc[/] interrupt",
-                    id="hint-left",
+                    "  [#2a2a50]ctrl+p[/] palette"
+                    "   [#2a2a50]tab[/] agents"
+                    "   [#2a2a50]ctrl+n[/] new chat",
+                    id="wc-hint-l",
                     markup=True,
                 )
                 yield Static(
-                    "[dim]/ slash cmds[/]  ",
-                    id="hint-right",
+                    "/ slash cmds   [#2a2a50]esc[/] stop  ",
+                    id="wc-hint-r",
                     markup=True,
                 )
 

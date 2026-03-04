@@ -92,7 +92,6 @@ class ContextMetrics(Static):
             show_percentage=False,
             horizontal_padding=0,
             max_width=28,
-            use_gradient=True,
         )
 
         bar_text = PureProgressBar(style=style).render(pct)
